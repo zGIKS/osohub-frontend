@@ -38,10 +38,7 @@ const Profile = () => {
         username: 'photographer1',
         email: 'photographer1@example.com',
         bio: 'Passionate photographer capturing life\'s beautiful moments',
-        profile_picture_url: null,
-        followerCount: 1234,
-        followingCount: 567,
-        imageCount: 42
+        profile_picture_url: null
       };
 
       const mockImages = [
@@ -107,16 +104,8 @@ const Profile = () => {
             <p className="profile-bio">{user?.bio}</p>
             <div className="profile-stats">
               <div className="stat">
-                <span className="stat-number">{user?.imageCount}</span>
+                <span className="stat-number">{userImages.length}</span>
                 <span className="stat-label">Images</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">{user?.followerCount}</span>
-                <span className="stat-label">Followers</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">{user?.followingCount}</span>
-                <span className="stat-label">Following</span>
               </div>
             </div>
           </div>
