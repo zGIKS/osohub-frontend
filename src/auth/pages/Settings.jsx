@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { User, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../hooks/useToast';
 import './Settings.css';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const { refreshUser } = useAuth(); // Obtener refreshUser del contexto
+  const { refreshUser } = useAuth();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -39,7 +40,7 @@ const Settings = () => {
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
-        setMessage({ type: 'error', text: 'Failed to load user data' });
+        toast.error('Failed to load user data');
       } finally {
         setIsLoading(false);
       }
@@ -74,7 +75,6 @@ const Settings = () => {
 
   const handleRemoveProfilePicture = async () => {
     setIsLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       // Limpiar preview si existe
@@ -93,19 +93,13 @@ const Settings = () => {
         profile_picture_url: result.profile_picture_url || ''
       }));
       
-      setMessage({ 
-        type: 'success', 
-        text: 'Profile picture removed and default avatar set successfully!' 
-      });
+      toast.success('Profile picture removed and default avatar set successfully!');
       
       // Refrescar el usuario en el contexto para actualizar toda la interfaz
       await refreshUser();
     } catch (error) {
       console.error('Error removing profile picture:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to remove profile picture. Please try again.' 
-      });
+      toast.error(error.response?.data?.message || 'Failed to remove profile picture. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +107,6 @@ const Settings = () => {
 
   const handleSave = async () => {
     setIsLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       // Preparar datos para el update
@@ -130,7 +123,7 @@ const Settings = () => {
       // Actualizar perfil usando FormData
       const result = await userService.updateUser(updateData);
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      toast.success('Profile updated successfully!');
       
       // Limpiar selección de archivo
       setProfileImageFile(null);
@@ -148,10 +141,7 @@ const Settings = () => {
       await refreshUser();
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to update profile. Please try again.' 
-      });
+      toast.error(error.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -159,22 +149,21 @@ const Settings = () => {
 
   const handlePasswordSave = async () => {
     setIsLoading(true);
-    setMessage({ type: '', text: '' });
 
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Please fill in all password fields.' });
+      toast.error('Please fill in all password fields.');
       setIsLoading(false);
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match.' });
+      toast.error('New passwords do not match.');
       setIsLoading(false);
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'New password must be at least 6 characters long.' });
+      toast.error('New password must be at least 6 characters long.');
       setIsLoading(false);
       return;
     }
@@ -184,7 +173,7 @@ const Settings = () => {
         password: passwordData.newPassword
       });
 
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      toast.success('Password changed successfully!');
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -192,10 +181,7 @@ const Settings = () => {
       });
     } catch (error) {
       console.error('Error changing password:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Error changing password. Please check your current password.' 
-      });
+      toast.error('Error changing password. Please check your current password.');
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +200,6 @@ const Settings = () => {
     });
     setProfileImageFile(null);
     setProfileImagePreview(null);
-    setMessage({ type: '', text: '' });
   };
 
   const renderProfileTab = () => (
@@ -363,17 +348,6 @@ const Settings = () => {
         </div>
 
         <div className="settings-main">
-          {message.text && (
-            <div className={`message ${message.type}`}>
-              {message.type === 'success' ? (
-                <CheckCircle size={20} />
-              ) : (
-                <AlertCircle size={20} />
-              )}
-              <span>{message.text}</span>
-            </div>
-          )}
-
           {renderActiveTab()}
           
           {activeTab === 'profile' && (
