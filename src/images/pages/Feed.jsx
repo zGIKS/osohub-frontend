@@ -193,6 +193,7 @@ const Feed = () => {
 
       {showUploadModal && (
         <ImageUploadModal
+          isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           onUpload={handleImageUpload}
         />
