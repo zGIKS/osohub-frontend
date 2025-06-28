@@ -22,7 +22,7 @@ const config = {
   // Development flags
   dev: {
     enableMockData: import.meta.env.VITE_ENABLE_MOCK_DATA === 'true',
-    debugAPI: import.meta.env.VITE_DEBUG_API === 'true',
+    debugAPI: true, // Force debug for now to diagnose likes issue
   },
   
   // Endpoints structure
@@ -32,6 +32,7 @@ const config = {
     
     // Usuarios
     GET_USER: '/users/:user_id',
+    GET_CURRENT_USER: '/users/me',
     CREATE_USER: '/users',
     UPDATE_PROFILE: '/users/me',
     BAN_USER: '/users/:user_id/ban',
@@ -47,6 +48,7 @@ const config = {
     LIKE_IMAGE: '/images/:image_id/like',
     UNLIKE_IMAGE: '/images/:image_id/like',
     GET_LIKES_COUNT: '/images/:image_id/likes/count',
+    CHECK_IF_LIKED: '/images/:image_id/like/status', // New endpoint to check if user liked image
     
     // Reports
     REPORT_IMAGE: '/images/:image_id/report',

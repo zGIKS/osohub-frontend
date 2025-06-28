@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { User, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import { userService } from '../services/userService';
+import { useAuth } from '../../contexts/AuthContext';
 import './Settings.css';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const { refreshUser } = useAuth(); // Obtener refreshUser del contexto
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -75,51 +77,41 @@ const Settings = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      let profilePictureUrl = formData.profile_picture_url;
-      
-      // If user selected a new profile image, upload it first
+      // Preparar datos para el update
+      const updateData = {
+        username: formData.username,
+        bio: formData.bio
+      };
+
+      // Si hay una imagen nueva, agregarla
       if (profileImageFile) {
-        const formDataUpload = new FormData();
-        formDataUpload.append('image', profileImageFile);
-        formDataUpload.append('description', 'Profile picture');
-        
-        const uploadResponse = await fetch('http://localhost:8080/api/images', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          },
-          body: formDataUpload
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          profilePictureUrl = uploadResult.url;
-        } else {
-          throw new Error('Failed to upload profile picture');
-        }
+        updateData.profile_picture = profileImageFile;
       }
 
-      // Update user profile with new data
-      await userService.updateUser({
-        username: formData.username,
-        bio: formData.bio,
-        profile_picture_url: profilePictureUrl
-      });
+      // Actualizar perfil usando FormData
+      const result = await userService.updateUser(updateData);
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      // Update formData with new profile picture URL
-      setFormData(prev => ({
-        ...prev,
-        profile_picture_url: profilePictureUrl
-      }));
-      // Clear file selection
+      
+      // Limpiar selección de archivo
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      
+      // Actualizar formData si la respuesta incluye nueva URL de imagen
+      if (result && result.profile_picture_url) {
+        setFormData(prev => ({
+          ...prev,
+          profile_picture_url: result.profile_picture_url
+        }));
+      }
+
+      // Refrescar el usuario en el contexto para actualizar el sidebar
+      await refreshUser();
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({ 
         type: 'error', 
-        text: 'Network error. Please check your connection and try again.' 
+        text: error.response?.data?.message || 'Failed to update profile. Please try again.' 
       });
     } finally {
       setIsLoading(false);

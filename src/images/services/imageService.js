@@ -58,24 +58,6 @@ export const imageService = {
     }
   },
 
-  // Upload image URL - nuevo método para tu spec exacta
-  uploadImageURL: async (imageUrl, title = '') => {
-    debugLog('Uploading image URL...', { imageUrl, title });
-    const response = await apiClient.post(config.endpoints.UPLOAD_IMAGE, {
-      image_url: imageUrl,
-      title: title
-    });
-    return response.data;
-  },
-
-  // Get image by ID
-  getImageById: async (imageId) => {
-    debugLog('Getting image by ID...', { imageId });
-    const endpoint = config.endpoints.GET_IMAGE.replace(':image_id', imageId);
-    const response = await apiClient.get(endpoint);
-    return response.data;
-  },
-
   // Delete image
   deleteImage: async (imageId) => {
     debugLog('Deleting image...', { imageId });
@@ -84,28 +66,74 @@ export const imageService = {
     return response.data;
   },
 
-  // Like image
+  // Like image (usando POST)
   likeImage: async (imageId) => {
     debugLog('Liking image...', { imageId });
-    const endpoint = config.endpoints.LIKE_IMAGE.replace(':image_id', imageId);
-    const response = await apiClient.post(endpoint);
-    return response.data;
+    try {
+      const endpoint = config.endpoints.LIKE_IMAGE.replace(':image_id', imageId);
+      const response = await apiClient.post(endpoint);
+      debugLog('Like response:', { 
+        imageId, 
+        status: response.status, 
+        data: response.data 
+      });
+      
+      // Return response data if available, otherwise return success indicator
+      return response.data || { success: true };
+    } catch (error) {
+      debugLog('Like error:', { imageId, error: error.message, status: error.response?.status });
+      throw error; // Re-throw to allow calling code to handle
+    }
   },
 
-  // Remove like (usando el mismo endpoint con DELETE)
+  // Remove like (usando DELETE)
   removeLike: async (imageId) => {
     debugLog('Removing like...', { imageId });
-    const endpoint = config.endpoints.UNLIKE_IMAGE.replace(':image_id', imageId);
-    const response = await apiClient.delete(endpoint);
-    return response.data;
+    try {
+      const endpoint = config.endpoints.UNLIKE_IMAGE.replace(':image_id', imageId); 
+      const response = await apiClient.delete(endpoint);
+      debugLog('Unlike response:', { 
+        imageId, 
+        status: response.status, 
+        data: response.data 
+      });
+      
+      // Return response data if available, otherwise return success indicator
+      return response.data || { success: true };
+    } catch (error) {
+      debugLog('Unlike error:', { imageId, error: error.message, status: error.response?.status });
+      throw error; // Re-throw to allow calling code to handle
+    }
   },
 
   // Get like count
   getLikeCount: async (imageId) => {
     debugLog('Getting like count...', { imageId });
-    const endpoint = config.endpoints.GET_LIKES_COUNT.replace(':image_id', imageId);
-    const response = await apiClient.get(endpoint);
-    return response.data;
+    try {
+      const endpoint = config.endpoints.GET_LIKES_COUNT.replace(':image_id', imageId);
+      const response = await apiClient.get(endpoint);
+      debugLog('Like count response:', { imageId, likes: response.data.likes });
+      // Backend returns { "likes": number }, normalize to { "count": number }
+      return { count: response.data.likes || 0 };
+    } catch (error) {
+      debugLog('Failed to get like count:', { imageId, error: error.message });
+      return { count: 0 }; // Default to 0 on error
+    }
+  },
+
+  // Check if current user liked the image
+  checkIfLiked: async (imageId) => {
+    debugLog('Checking if image is liked...', { imageId });
+    try {
+      const endpoint = config.endpoints.CHECK_IF_LIKED.replace(':image_id', imageId);
+      const response = await apiClient.get(endpoint);
+      debugLog('Like status response:', { imageId, liked: response.data.liked });
+      return response.data.liked || false;
+    } catch (error) {
+      // If endpoint doesn't exist or fails, assume not liked
+      debugLog('Could not check like status, assuming not liked', { imageId, error: error.message });
+      return false;
+    }
   },
 
   // Report image - según tu spec: { "reason": "string" }

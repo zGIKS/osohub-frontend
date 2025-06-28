@@ -1,36 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, MoreHorizontal, Trash2, Flag } from 'lucide-react';
 import { imageService } from '../services/imageService';
+import { debugLog } from '../../config';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import ReportImageModal from './ReportImageModal';
 import './ImageCard.css';
 
 const ImageCard = ({ image, onDelete, currentUserId }) => {
-  const [isLiked, setIsLiked] = useState(image.isLiked || false);
-  const [likeCount, setLikeCount] = useState(image.likeCount || 0);
+  const [isLiked, setIsLiked] = useState(false); // Always start with false, load from API
+  const [likeCount, setLikeCount] = useState(0); // Always start with 0, load from API
   const [showOptions, setShowOptions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  const [likeCountLoaded, setLikeCountLoaded] = useState(false); // Always load from API
+
+  // Debug: Log image data to see user profile picture
+  useEffect(() => {
+    debugLog('ImageCard received data:', {
+      imageId: image.id,
+      username: image.user?.username,
+      profilePictureUrl: image.user?.profile_picture_url,
+      initialLikeCount: image.likeCount,
+      initialIsLiked: image.isLiked
+    });
+  }, [image]);
+
+  // Load like count and status if not provided by backend
+  useEffect(() => {
+    const loadLikeInfo = async () => {
+      if (!likeCountLoaded) {
+        try {
+          debugLog('Loading like info for image:', image.id);
+          
+          // Load both like count and like status in parallel
+          const [likeData, isLikedStatus] = await Promise.all([
+            imageService.getLikeCount(image.id),
+            imageService.checkIfLiked(image.id)
+          ]);
+          
+          setLikeCount(likeData.count || 0);
+          setIsLiked(isLikedStatus);
+          setLikeCountLoaded(true);
+          
+          debugLog('Like info loaded:', { 
+            imageId: image.id, 
+            count: likeData.count, 
+            isLiked: isLikedStatus 
+          });
+        } catch (error) {
+          debugLog('Failed to load like info:', { imageId: image.id, error: error.message });
+          // Keep the default values
+          setLikeCountLoaded(true);
+        }
+      }
+    };
+
+    loadLikeInfo();
+  }, [image.id, likeCountLoaded]);
 
   const handleLike = async () => {
     if (isLoading) return;
     
     setIsLoading(true);
+    const originalLiked = isLiked;
+    const originalCount = likeCount;
+    
     try {
+      // Optimistic update
       if (isLiked) {
-        await imageService.removeLike(image.id);
         setIsLiked(false);
-        setLikeCount(prev => prev - 1);
+        setLikeCount(prev => Math.max(0, prev - 1));
+        debugLog('Removing like...', { imageId: image.id });
+        await imageService.removeLike(image.id);
+        debugLog('Like removed successfully');
       } else {
-        await imageService.likeImage(image.id);
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
+        debugLog('Adding like...', { imageId: image.id });
+        await imageService.likeImage(image.id);
+        debugLog('Like added successfully');
       }
     } catch (error) {
+      // Revert optimistic update on error
+      setIsLiked(originalLiked);
+      setLikeCount(originalCount);
       console.error('Error toggling like:', error);
+      debugLog('Like toggle failed, reverted state', { 
+        error: error.message,
+        imageId: image.id 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +190,46 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         <div className="image-info">
           <div className="user-info">
             <div className="user-avatar">
-              {image.user?.username?.[0]?.toUpperCase() || 'U'}
+              {(() => {
+                const profileUrl = image.user?.profile_picture_url;
+                const hasValidUrl = profileUrl && 
+                                   profileUrl !== 'null' && 
+                                   profileUrl !== '' && 
+                                   profileUrl !== 'undefined';
+                
+                debugLog('Avatar render decision:', {
+                  profileUrl,
+                  hasValidUrl,
+                  username: image.user?.username
+                });
+
+                if (hasValidUrl) {
+                  return (
+                    <img 
+                      src={profileUrl} 
+                      alt={image.user.username || 'Usuario'}
+                      onLoad={() => debugLog('✅ Profile image loaded:', profileUrl)}
+                      onError={(e) => {
+                        debugLog('❌ Profile image failed:', profileUrl);
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                  );
+                } else {
+                  return null;
+                }
+              })()}
+              <span 
+                style={{ 
+                  display: image.user?.profile_picture_url && 
+                          image.user.profile_picture_url !== 'null' && 
+                          image.user.profile_picture_url !== '' && 
+                          image.user.profile_picture_url !== 'undefined' ? 'none' : 'flex' 
+                }}
+              >
+                {(image.user?.username || 'U')[0]?.toUpperCase()}
+              </span>
             </div>
             <span className="username">{image.user?.username || 'User'}</span>
           </div>

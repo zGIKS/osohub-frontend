@@ -49,30 +49,49 @@ export const userService = {
     }
   },
 
-  // Get current user - usando GET /users/me 
+  // Get current user - usando GET /users/me
   async getCurrentUser() {
     try {
       debugLog('Getting current user...');
-      const response = await apiClient.get(config.endpoints.UPDATE_PROFILE);
+      const response = await apiClient.get(config.endpoints.GET_CURRENT_USER);
+      
+      debugLog('Current user data received:', response.data);
       return response.data;
     } catch (error) {
       debugLog('Current user error:', error);
-      throw error; // No usar fallback, propagar el error
+      throw error;
     }
   },
 
-  // Update user profile - PATCH /users/me
+  // Update user profile - PATCH /users/me (usando FormData)
   async updateUser(userData) {
     try {
       debugLog('Updating user...', userData);
-      // Solo envía los campos que han cambiado
-      const updateData = {};
-      if (userData.username !== undefined) updateData.username = userData.username;
-      if (userData.bio !== undefined) updateData.bio = userData.bio;
-      if (userData.profile_picture_url !== undefined) updateData.profile_picture_url = userData.profile_picture_url;
-      if (userData.password !== undefined) updateData.password = userData.password;
+      
+      // Crear FormData para enviar archivos y datos
+      const formData = new FormData();
+      
+      // Solo agregar campos que no son undefined/null
+      if (userData.username !== undefined && userData.username !== null) {
+        formData.append('username', userData.username);
+      }
+      if (userData.bio !== undefined && userData.bio !== null) {
+        formData.append('bio', userData.bio);
+      }
+      if (userData.password !== undefined && userData.password !== null) {
+        formData.append('password', userData.password);
+      }
+      if (userData.profile_picture && userData.profile_picture instanceof File) {
+        formData.append('profile_picture', userData.profile_picture);
+      }
 
-      const response = await apiClient.patch(config.endpoints.UPDATE_PROFILE, updateData);
+      debugLog('FormData created for user update');
+      
+      const response = await apiClient.patch(config.endpoints.UPDATE_PROFILE, formData, {
+        // No establecer Content-Type para FormData - axios lo manejará automáticamente
+      });
+      
+      debugLog('User update successful:', response.data);
       return response.data;
     } catch (error) {
       debugLog('User update error:', error);

@@ -30,20 +30,39 @@ export const AuthProvider = ({ children }) => {
         // Intentar recuperar datos del usuario del localStorage
         const savedUserData = localStorage.getItem('userData');
         if (savedUserData) {
-          setUser(JSON.parse(savedUserData));
+          const userData = JSON.parse(savedUserData);
+          setUser(userData);
+          setIsAuthenticated(true);
+        } else {
+          // Si no hay datos guardados, cargarlos desde la API
+          await loadUserData();
         }
-        setIsAuthenticated(true);
       } catch (error) {
         console.error('Error parsing saved user data:', error);
-        // Si hay error al parsear, limpiamos y continuamos
+        // Si hay error al parsear, limpiar y cargar desde API
         localStorage.removeItem('userData');
-        setIsAuthenticated(true); // Pero mantenemos autenticado
+        await loadUserData();
       }
     } else {
       setUser(null);
       setIsAuthenticated(false);
     }
     setLoading(false);
+  };
+
+  const loadUserData = async () => {
+    try {
+      const userData = await userService.getCurrentUser();
+      setUser(userData);
+      setIsAuthenticated(true);
+      // Guardar en localStorage para próximas visitas
+      localStorage.setItem('userData', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // Si falla cargar datos pero tenemos token, mantener autenticado sin datos de usuario
+      setIsAuthenticated(true);
+      setUser(null);
+    }
   };
 
   const login = async (email, password) => {
@@ -114,8 +133,15 @@ export const AuthProvider = ({ children }) => {
   const updateUser = async (userData) => {
     try {
       const updatedUser = await userService.updateUser(userData);
-      setUser(updatedUser);
-      return { success: true };
+      
+      // Combinar datos existentes con los nuevos
+      const mergedUser = { ...user, ...updatedUser };
+      setUser(mergedUser);
+      
+      // Actualizar localStorage
+      localStorage.setItem('userData', JSON.stringify(mergedUser));
+      
+      return { success: true, user: mergedUser };
     } catch (error) {
       console.error('Update user error:', error);
       return { 
@@ -123,6 +149,11 @@ export const AuthProvider = ({ children }) => {
         error: error.response?.data?.message || 'Failed to update profile.' 
       };
     }
+  };
+
+  // Función para refrescar datos del usuario
+  const refreshUser = async () => {
+    await loadUserData();
   };
 
   const value = {
@@ -133,6 +164,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     logout,
     updateUser,
+    refreshUser,
     checkAuthStatus
   };
 

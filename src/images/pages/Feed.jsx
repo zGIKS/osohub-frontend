@@ -97,6 +97,8 @@ const Feed = () => {
   };
 
   const transformImages = (images) => {
+    debugLog('Raw images data before transform:', images.slice(0, 2)); // Solo los primeros 2 para no saturar logs
+    
     return images.map(image => ({
       id: image.image_id,
       url: image.image_url === 'null' || !image.image_url ? 
@@ -107,10 +109,11 @@ const Feed = () => {
       userId: image.user_id,
       user: { 
         username: image.username || 'Usuario desconocido',
-        user_id: image.user_id 
+        user_id: image.user_id,
+        profile_picture_url: image.user_profile_picture_url || null
       },
-      likeCount: 0, // Por ahora hardcodeado
-      isLiked: false, // Por ahora hardcodeado
+      likeCount: image.like_count || 0, // Use backend data if available
+      isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id
     }));
