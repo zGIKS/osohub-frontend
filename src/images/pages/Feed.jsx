@@ -118,12 +118,23 @@ const Feed = () => {
 
   const handleImageUpload = async (file, title) => {
     try {
+      debugLog('Starting image upload...', { fileName: file.name, title });
       const result = await imageService.uploadImage(file, title);
-      await loadFeed(); // Reload feed after upload
+      debugLog('Upload completed successfully:', result);
+      
+      // Reload feed after successful upload
+      await loadFeed();
       setShowUploadModal(false);
       return result;
     } catch (error) {
       console.error('Error uploading image:', error);
+      debugLog('Upload failed:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      // Re-throw the error so the modal can handle it
       throw error;
     }
   };

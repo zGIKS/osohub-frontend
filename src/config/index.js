@@ -10,6 +10,7 @@ const config = {
   auth: {
     tokenKey: 'authToken',
     userIdKey: 'currentUserId',
+    usernameKey: 'username',
   },
   
   // App Configuration
@@ -70,16 +71,25 @@ export const getCurrentUserId = () => {
   return localStorage.getItem(config.auth.userIdKey);
 };
 
+// Helper function para obtener username
+export const getCurrentUsername = () => {
+  return localStorage.getItem(config.auth.usernameKey);
+};
+
 // Helper function para guardar auth data
-export const setAuthData = (token, userId) => {
+export const setAuthData = (token, userId, username = null) => {
   localStorage.setItem(config.auth.tokenKey, token);
   localStorage.setItem(config.auth.userIdKey, userId);
+  if (username) {
+    localStorage.setItem(config.auth.usernameKey, username);
+  }
 };
 
 // Helper function para limpiar auth data
 export const clearAuthData = () => {
   localStorage.removeItem(config.auth.tokenKey);
   localStorage.removeItem(config.auth.userIdKey);
+  localStorage.removeItem(config.auth.usernameKey);
 };
 
 export default config;

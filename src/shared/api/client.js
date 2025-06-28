@@ -19,9 +19,14 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
+    // Si es FormData, no establecer Content-Type (axios lo hará automáticamente)
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     debugLog(`API Request: ${config.method?.toUpperCase()} ${config.url}`, {
       headers: config.headers,
-      data: config.data
+      data: config.data instanceof FormData ? 'FormData' : config.data
     });
     
     return config;

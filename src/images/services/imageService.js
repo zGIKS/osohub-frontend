@@ -1,5 +1,5 @@
 import apiClient, { config } from '../../shared/api/client';
-import { debugLog } from '../../config';
+import { debugLog, getCurrentUserId, getCurrentUsername } from '../../config';
 
 export const imageService = {
   // Get global feed - requires day_bucket parameter (YYYY-MM-DD)
@@ -13,21 +13,49 @@ export const imageService = {
     return response.data;
   },
 
-  // Upload new image - según tu spec: POST /images con { "image_url": "url", "title": "titulo" }
+  // Upload new image - usando Cloudinary con FormData
   uploadImage: async (imageFile, title = '') => {
-    debugLog('Uploading image file...', { title });
-    // Para subir archivo, primero necesitaríamos un endpoint de upload de archivos
-    // Por ahora mantengo la funcionalidad actual que espera un FormData
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('title', title);
-    
-    const response = await apiClient.post(config.endpoints.UPLOAD_IMAGE, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    debugLog('Uploading image file to Cloudinary...', { 
+      fileName: imageFile.name, 
+      fileSize: `${(imageFile.size / 1024 / 1024).toFixed(2)}MB`,
+      fileType: imageFile.type,
+      title 
     });
-    return response.data;
+    
+    try {
+      // Crear FormData según tu API spec
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('title', title);
+      
+      debugLog('FormData created, sending to backend...');
+      
+      // Enviar usando FormData (Content-Type se establece automáticamente)
+      const response = await apiClient.post(config.endpoints.UPLOAD_IMAGE, formData, {
+        // No establecer headers para FormData - axios lo manejará automáticamente
+      });
+      
+      debugLog('Upload successful:', {
+        image_id: response.data.image_id,
+        image_url: response.data.image_url,
+        title: response.data.title,
+        user_id: response.data.user_id,
+        username: response.data.username,
+        uploaded_at: response.data.uploaded_at,
+        day_bucket: response.data.day_bucket
+      });
+      
+      return response.data;
+    } catch (error) {
+      debugLog('Upload error:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      });
+      throw error;
+    }
   },
 
   // Upload image URL - nuevo método para tu spec exacta
