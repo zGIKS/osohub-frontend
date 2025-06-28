@@ -1,0 +1,161 @@
+/* Import shared modal styles from ImageUploadModal.css */
+@import './ImageUploadModal.css';
+
+.report-modal {
+  background-color: var(--bg-primary);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+}
+
+.report-form {
+  padding: 2rem;
+}
+
+.report-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.report-icon {
+  color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-radius: 50%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-section h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.report-section p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.reason-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-label {
+  display: block;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.reason-section textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.reason-section textarea:focus {
+  outline: none;
+  border-color: var(--text-primary);
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+}
+
+.report-btn {
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.report-btn:hover:not(:disabled) {
+  background-color: #e0a800;
+}
+
+.report-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .report-modal {
+    max-height: 95vh;
+  }
+  
+  .report-form {
+    padding: 1.5rem;
+  }
+  
+  .report-section {
+    margin-bottom: 1.5rem;
+  }
+  
+  .report-section h3 {
+    font-size: 1.2rem;
+  }
+  
+  .report-section p {
+    font-size: 0.9rem;
+  }
+  
+  .reason-section {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-form {
+    padding: 1rem;
+  }
+  
+  .report-icon {
+    padding: 0.75rem;
+  }
+  
+  .report-section h3 {
+    font-size: 1.1rem;
+  }
+  
+  .reason-section textarea {
+    min-height: 80px;
+  }
+}

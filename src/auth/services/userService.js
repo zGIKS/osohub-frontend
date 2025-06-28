@@ -13,10 +13,7 @@ export const userService = {
         username: 'photographer1',
         email: 'photographer1@example.com',
         bio: 'Passionate photographer capturing life\'s beautiful moments',
-        profile_picture_url: null,
-        followerCount: 1234,
-        followingCount: 567,
-        imageCount: 42
+        profile_picture_url: null
       };
     }
   },

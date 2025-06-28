@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, Upload } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
+import ImageUploadModal from '../components/ImageUploadModal';
 import { imageService } from '../services/imageService';
 import './Feed.css';
 
 const Feed = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
-  const [uploadDescription, setUploadDescription] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Mock current user ID - in a real app, this would come from auth context
   const currentUserId = localStorage.getItem('currentUserId') || '1';
@@ -96,20 +95,16 @@ const Feed = () => {
     }
   };
 
-  const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
+  const handleImageUpload = async (file, description) => {
     try {
-      setUploading(true);
       // In a real app, this would upload to your backend
-      // const result = await imageService.uploadImage(file, uploadDescription);
+      // const result = await imageService.uploadImage(file, description);
       
       // For demo, just add a mock image
       const newImage = {
         id: Date.now().toString(),
         url: URL.createObjectURL(file),
-        description: uploadDescription,
+        description: description,
         userId: currentUserId,
         user: { username: 'you' },
         likeCount: 0,
@@ -118,12 +113,9 @@ const Feed = () => {
       };
       
       setImages(prev => [newImage, ...prev]);
-      setShowUpload(false);
-      setUploadDescription('');
     } catch (error) {
       console.error('Error uploading image:', error);
-    } finally {
-      setUploading(false);
+      throw error;
     }
   };
 
@@ -146,37 +138,12 @@ const Feed = () => {
         <h1>FEED</h1>
         <button
           className="upload-btn"
-          onClick={() => setShowUpload(!showUpload)}
+          onClick={() => setShowUploadModal(true)}
         >
           <Plus size={20} />
           New Image
         </button>
       </div>
-
-      {showUpload && (
-        <div className="upload-section">
-          <div className="upload-form">
-            <input
-              type="text"
-              placeholder="Image description (optional)"
-              value={uploadDescription}
-              onChange={(e) => setUploadDescription(e.target.value)}
-              className="upload-description"
-            />
-            <label className="upload-label">
-              <Upload size={20} />
-              {uploading ? 'Uploading...' : 'Select Image'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={uploading}
-                style={{ display: 'none' }}
-              />
-            </label>
-          </div>
-        </div>
-      )}
 
       <div className="feed-grid">
         {images.map((image) => (
@@ -194,13 +161,19 @@ const Feed = () => {
           <p>No images in the feed</p>
           <button
             className="upload-btn"
-            onClick={() => setShowUpload(true)}
+            onClick={() => setShowUploadModal(true)}
           >
             <Plus size={20} />
             Upload the first image
           </button>
         </div>
       )}
+
+      <ImageUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUpload={handleImageUpload}
+      />
     </div>
   );
 };
