@@ -5,19 +5,27 @@ import {
   User, 
   Settings,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navigationItems = [
     { icon: Grid3x3, label: 'FEED', path: '/', id: 'feed' },
     { icon: User, label: 'PROFILE', path: '/profile', id: 'profile' },
     { icon: Settings, label: 'SETTINGS', path: '/settings', id: 'settings' },
   ];
+
+  const handleLogout = () => {
+    logout();
+    closeMobileMenu();
+  };
 
   const isActive = (path) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -79,6 +87,26 @@ const Sidebar = () => {
               </Link>
             );
           })}
+          
+          {/* User Info and Logout */}
+          <div className="sidebar-footer">
+            {user && (
+              <div className="user-info">
+                <div className="user-avatar">
+                  {user.profile_picture_url ? (
+                    <img src={user.profile_picture_url} alt={user.username} />
+                  ) : (
+                    <span>{user.username?.[0]?.toUpperCase() || 'U'}</span>
+                  )}
+                </div>
+                <span className="username">{user.username}</span>
+              </div>
+            )}
+            <button className="nav-item logout-btn" onClick={handleLogout}>
+              <LogOut size={20} />
+              <span>LOGOUT</span>
+            </button>
+          </div>
         </nav>
       </div>
     </>

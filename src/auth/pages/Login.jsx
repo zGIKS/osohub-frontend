@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -28,16 +30,16 @@ const Login = () => {
     setError('');
 
     try {
-      // Mock login - in a real app, this would call your auth service
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const result = await login(formData.email, formData.password);
       
-      // Mock successful login
-      localStorage.setItem('authToken', 'mock-token');
-      localStorage.setItem('currentUserId', '1');
-      
-      navigate('/');
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.error || 'Login failed. Please check your credentials.');
+      }
     } catch (error) {
-      setError('Login error. Please check your credentials.');
+      console.error('Login error:', error);
+      setError('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
