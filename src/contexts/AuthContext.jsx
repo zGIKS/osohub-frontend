@@ -154,6 +154,11 @@ export const AuthProvider = ({ children }) => {
   // Función para refrescar datos del usuario
   const refreshUser = async () => {
     await loadUserData();
+    
+    // Emitir evento personalizado cuando se actualice el usuario
+    window.dispatchEvent(new CustomEvent('userProfileUpdated', { 
+      detail: { user } 
+    }));
   };
 
   const value = {

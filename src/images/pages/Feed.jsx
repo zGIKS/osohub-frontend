@@ -16,6 +16,18 @@ const Feed = () => {
 
   useEffect(() => {
     loadFeed();
+    
+    // Escuchar eventos de actualización de perfil para recargar el feed
+    const handleUserProfileUpdate = () => {
+      debugLog('User profile updated, reloading feed...');
+      loadFeed();
+    };
+    
+    window.addEventListener('userProfileUpdated', handleUserProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleUserProfileUpdate);
+    };
   }, []);
 
   // Función para generar rango de fechas

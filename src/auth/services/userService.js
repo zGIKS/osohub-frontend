@@ -1,5 +1,6 @@
 import apiClient, { config } from '../../shared/api/client';
 import { debugLog, getCurrentUserId } from '../../config';
+import { generateDefaultAvatar } from '../../utils/avatarGenerator';
 
 export const userService = {
   // Login - POST /auth/login
@@ -95,6 +96,34 @@ export const userService = {
       return response.data;
     } catch (error) {
       debugLog('User update error:', error);
+      throw error;
+    }
+  },
+
+  // Remover foto de perfil y establecer una por defecto
+  async removeProfilePicture() {
+    try {
+      debugLog('Removing profile picture and setting default...');
+      
+      // Primero obtener datos del usuario actual para el username
+      const currentUser = await this.getCurrentUser();
+      
+      // Generar avatar por defecto
+      const defaultAvatarBlob = await generateDefaultAvatar(currentUser.username);
+      
+      // Crear FormData para subir el avatar por defecto
+      const formData = new FormData();
+      formData.append('profile_picture', defaultAvatarBlob, `default-avatar-${currentUser.username}.png`);
+      
+      debugLog('Uploading default avatar...');
+      
+      // Subir el avatar por defecto
+      const response = await apiClient.patch(config.endpoints.UPDATE_PROFILE, formData);
+      
+      debugLog('Default avatar uploaded successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      debugLog('Remove profile picture error:', error);
       throw error;
     }
   },

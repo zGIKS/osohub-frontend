@@ -72,6 +72,45 @@ const Settings = () => {
     }));
   };
 
+  const handleRemoveProfilePicture = async () => {
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      // Limpiar preview si existe
+      if (profileImagePreview) {
+        URL.revokeObjectURL(profileImagePreview);
+        setProfileImagePreview(null);
+      }
+      setProfileImageFile(null);
+      
+      // Llamar al servicio para generar y subir avatar por defecto
+      const result = await userService.removeProfilePicture();
+      
+      // Actualizar formData con la nueva URL del avatar por defecto
+      setFormData(prev => ({
+        ...prev,
+        profile_picture_url: result.profile_picture_url || ''
+      }));
+      
+      setMessage({ 
+        type: 'success', 
+        text: 'Profile picture removed and default avatar set successfully!' 
+      });
+      
+      // Refrescar el usuario en el contexto para actualizar toda la interfaz
+      await refreshUser();
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || 'Failed to remove profile picture. Please try again.' 
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     setMessage({ type: '', text: '' });
@@ -235,18 +274,9 @@ const Settings = () => {
               <button 
                 type="button" 
                 className="remove-avatar-btn"
-                onClick={() => {
-                  setProfileImageFile(null);
-                  setProfileImagePreview(null);
-                  if (profileImagePreview) {
-                    URL.revokeObjectURL(profileImagePreview);
-                  }
-                  setFormData(prev => ({
-                    ...prev,
-                    profile_picture_url: ''
-                  }));
-                }}
-                title="Remove profile picture"
+                onClick={handleRemoveProfilePicture}
+                disabled={isLoading}
+                title="Remove profile picture and set default"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
