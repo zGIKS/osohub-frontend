@@ -1,31 +1,50 @@
-import { useState } from 'react';
-import { User, Mail, Lock, Bell, Shield, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { userService } from '../services/userService';
 import './Settings.css';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
     bio: '',
+    profile_picture_url: ''
+  });
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
-    notifications: {
-      likes: true,
-      follows: true,
-      comments: true,
-      email: false
-    }
+    confirmPassword: ''
   });
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'account', label: 'Account', icon: Mail },
     { id: 'security', label: 'Security', icon: Lock },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'privacy', label: 'Privacy', icon: Shield },
   ];
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      setIsLoading(true);
+      try {
+        const userData = await userService.getCurrentUser();
+        setFormData({
+          username: userData.username || '',
+          bio: userData.bio || '',
+          profile_picture_url: userData.profile_picture_url || ''
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setMessage({ type: 'error', text: 'Failed to load user data' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -34,20 +53,137 @@ const Settings = () => {
     }));
   };
 
-  const handleNotificationChange = (type, value) => {
-    setFormData(prev => ({
+  const handleProfileImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setProfileImageFile(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImagePreview(previewUrl);
+    }
+  };
+
+  const handlePasswordChange = (field, value) => {
+    setPasswordData(prev => ({
       ...prev,
-      notifications: {
-        ...prev.notifications,
-        [type]: value
-      }
+      [field]: value
     }));
   };
 
-  const handleSave = () => {
-    // Here you would implement the logic to save changes
-    console.log('Saving settings:', formData);
-    alert('Settings saved successfully');
+  const handleSave = async () => {
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      let profilePictureUrl = formData.profile_picture_url;
+      
+      // If user selected a new profile image, upload it first
+      if (profileImageFile) {
+        const formDataUpload = new FormData();
+        formDataUpload.append('image', profileImageFile);
+        formDataUpload.append('description', 'Profile picture');
+        
+        const uploadResponse = await fetch('http://localhost:8080/api/images', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: formDataUpload
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          profilePictureUrl = uploadResult.url;
+        } else {
+          throw new Error('Failed to upload profile picture');
+        }
+      }
+
+      // Update user profile with new data
+      await userService.updateUser({
+        username: formData.username,
+        bio: formData.bio,
+        profile_picture_url: profilePictureUrl
+      });
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      // Update formData with new profile picture URL
+      setFormData(prev => ({
+        ...prev,
+        profile_picture_url: profilePictureUrl
+      }));
+      // Clear file selection
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Network error. Please check your connection and try again.' 
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSave = async () => {
+    setIsLoading(true);
+    setMessage({ type: '', text: '' });
+
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'Please fill in all password fields.' });
+      setIsLoading(false);
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match.' });
+      setIsLoading(false);
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'New password must be at least 6 characters long.' });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await userService.updateUser({
+        password: passwordData.newPassword
+      });
+
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Error changing password. Please check your current password.' 
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      username: '',
+      bio: '',
+      profile_picture_url: ''
+    });
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setProfileImageFile(null);
+    setProfileImagePreview(null);
+    setMessage({ type: '', text: '' });
   };
 
   const renderProfileTab = () => (
@@ -71,27 +207,62 @@ const Settings = () => {
           rows="4"
         />
       </div>
-    </div>
-  );
-
-  const renderAccountTab = () => (
-    <div className="settings-section">
-      <h3>Account Information</h3>
       <div className="form-group">
-        <label>Email</label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your@email.com"
-        />
-      </div>
-      <div className="danger-zone">
-        <h4>Danger Zone</h4>
-        <button className="danger-btn">
-          <Trash2 size={16} />
-          Delete Account
-        </button>
+        <label>Profile Picture</label>
+        <div className="profile-picture-upload">
+          <div className="avatar-upload-container">
+            <div className="avatar-preview">
+              {(profileImagePreview || formData.profile_picture_url) ? (
+                <img 
+                  src={profileImagePreview || formData.profile_picture_url} 
+                  alt="Profile preview" 
+                  className="avatar-image"
+                />
+              ) : (
+                <div className="avatar-placeholder">
+                  <span>{formData.username?.[0]?.toUpperCase() || 'U'}</span>
+                </div>
+              )}
+              <div className="avatar-overlay">
+                <input
+                  type="file"
+                  id="profile-picture"
+                  accept="image/*"
+                  onChange={handleProfileImageChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="profile-picture" className="avatar-upload-btn">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
+                  </svg>
+                  <span>Change Photo</span>
+                </label>
+              </div>
+            </div>
+            {(profileImagePreview || formData.profile_picture_url) && (
+              <button 
+                type="button" 
+                className="remove-avatar-btn"
+                onClick={() => {
+                  setProfileImageFile(null);
+                  setProfileImagePreview(null);
+                  if (profileImagePreview) {
+                    URL.revokeObjectURL(profileImagePreview);
+                  }
+                  setFormData(prev => ({
+                    ...prev,
+                    profile_picture_url: ''
+                  }));
+                }}
+                title="Remove profile picture"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -103,100 +274,37 @@ const Settings = () => {
         <label>Current Password</label>
         <input
           type="password"
-          value={formData.currentPassword}
-          onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-          placeholder="Your current password"
+          value={passwordData.currentPassword}
+          onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+          placeholder="Enter your current password"
         />
       </div>
       <div className="form-group">
         <label>New Password</label>
         <input
           type="password"
-          value={formData.newPassword}
-          onChange={(e) => handleInputChange('newPassword', e.target.value)}
-          placeholder="New password"
+          value={passwordData.newPassword}
+          onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+          placeholder="Enter new password (min. 6 characters)"
         />
       </div>
       <div className="form-group">
         <label>Confirm New Password</label>
         <input
           type="password"
-          value={formData.confirmPassword}
-          onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+          value={passwordData.confirmPassword}
+          onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
           placeholder="Confirm your new password"
         />
       </div>
-    </div>
-  );
-
-  const renderNotificationsTab = () => (
-    <div className="settings-section">
-      <h3>Notification Preferences</h3>
-      <div className="notification-options">
-        <div className="notification-item">
-          <label>
-            <input
-              type="checkbox"
-              checked={formData.notifications.likes}
-              onChange={(e) => handleNotificationChange('likes', e.target.checked)}
-            />
-            Likes on your images
-          </label>
-        </div>
-        <div className="notification-item">
-          <label>
-            <input
-              type="checkbox"
-              checked={formData.notifications.follows}
-              onChange={(e) => handleNotificationChange('follows', e.target.checked)}
-            />
-            New followers
-          </label>
-        </div>
-        <div className="notification-item">
-          <label>
-            <input
-              type="checkbox"
-              checked={formData.notifications.comments}
-              onChange={(e) => handleNotificationChange('comments', e.target.checked)}
-            />
-            Comments
-          </label>
-        </div>
-        <div className="notification-item">
-          <label>
-            <input
-              type="checkbox"
-              checked={formData.notifications.email}
-              onChange={(e) => handleNotificationChange('email', e.target.checked)}
-            />
-            Email notifications
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderPrivacyTab = () => (
-    <div className="settings-section">
-      <h3>Privacy Settings</h3>
-      <div className="privacy-options">
-        <div className="privacy-item">
-          <h4>Private Profile</h4>
-          <p>Only your followers can see your images</p>
-          <label className="toggle">
-            <input type="checkbox" />
-            <span className="slider"></span>
-          </label>
-        </div>
-        <div className="privacy-item">
-          <h4>Show in Search</h4>
-          <p>Allow other users to find you</p>
-          <label className="toggle">
-            <input type="checkbox" defaultChecked />
-            <span className="slider"></span>
-          </label>
-        </div>
+      <div className="password-actions">
+        <button 
+          className="save-btn" 
+          onClick={handlePasswordSave}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Changing...' : 'Change Password'}
+        </button>
       </div>
     </div>
   );
@@ -204,10 +312,7 @@ const Settings = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
-      case 'account': return renderAccountTab();
       case 'security': return renderSecurityTab();
-      case 'notifications': return renderNotificationsTab();
-      case 'privacy': return renderPrivacyTab();
       default: return renderProfileTab();
     }
   };
@@ -236,16 +341,37 @@ const Settings = () => {
         </div>
 
         <div className="settings-main">
+          {message.text && (
+            <div className={`message ${message.type}`}>
+              {message.type === 'success' ? (
+                <CheckCircle size={20} />
+              ) : (
+                <AlertCircle size={20} />
+              )}
+              <span>{message.text}</span>
+            </div>
+          )}
+
           {renderActiveTab()}
           
-          <div className="settings-actions">
-            <button className="save-btn" onClick={handleSave}>
-              Save Changes
-            </button>
-            <button className="cancel-btn">
-              Cancel
-            </button>
-          </div>
+          {activeTab === 'profile' && (
+            <div className="settings-actions">
+              <button 
+                className="save-btn" 
+                onClick={handleSave}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button 
+                className="cancel-btn"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

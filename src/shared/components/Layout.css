@@ -11,9 +11,42 @@
   overflow-x: hidden;
 }
 
+/* Tablet responsiveness */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 200px;
+  }
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
+    padding-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .main-content {
+    padding-top: 56px;
+    min-height: calc(100vh - 56px);
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 400px) {
+  .main-content {
+    padding-top: 52px;
+    min-height: calc(100vh - 52px);
+  }
+}
+
+/* Ultra small mobile */
+@media (max-width: 320px) {
+  .main-content {
+    padding-top: 50px;
+    min-height: calc(100vh - 50px);
   }
 }

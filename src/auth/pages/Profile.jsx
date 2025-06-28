@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Settings, Grid3x3 } from 'lucide-react';
 import ImageCard from '../../images/components/ImageCard';
 import { imageService } from '../../images/services/imageService';
+import { userService } from '../services/userService';
 import './Profile.css';
 
 const Profile = () => {
@@ -21,18 +22,28 @@ const Profile = () => {
     try {
       setLoading(true);
       
-      // Mock user data
+      // Load user data from API
+      const userData = await userService.getCurrentUser();
+      setUser(userData);
+
+      // Load user's images
+      const images = await imageService.getUserImages(currentUserId);
+      setUserImages(images);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      
+      // Fallback to mock data if API fails
       const mockUser = {
         id: currentUserId,
         username: 'photographer1',
         email: 'photographer1@example.com',
         bio: 'Passionate photographer capturing life\'s beautiful moments',
+        profile_picture_url: null,
         followerCount: 1234,
         followingCount: 567,
         imageCount: 42
       };
 
-      // Mock user images
       const mockImages = [
         {
           id: '1',
@@ -50,36 +61,14 @@ const Profile = () => {
           description: 'Nature photography at its finest',
           userId: currentUserId,
           user: mockUser,
-          likeCount: 42,
-          isLiked: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '7',
-          url: 'https://picsum.photos/400/400?random=7',
-          description: 'Golden hour magic',
-          userId: currentUserId,
-          user: mockUser,
-          likeCount: 28,
-          isLiked: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '8',
-          url: 'https://picsum.photos/400/400?random=8',
-          description: 'Landscape composition',
-          userId: currentUserId,
-          user: mockUser,
-          likeCount: 19,
+          likeCount: 8,
           isLiked: true,
           createdAt: new Date().toISOString()
         }
       ];
-      
+
       setUser(mockUser);
       setUserImages(mockImages);
-    } catch (error) {
-      console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
     }
@@ -103,7 +92,15 @@ const Profile = () => {
       <div className="profile-header">
         <div className="profile-info">
           <div className="profile-avatar">
-            {user?.username?.[0]?.toUpperCase() || 'U'}
+            {user?.profile_picture_url ? (
+              <img 
+                src={user.profile_picture_url} 
+                alt={user.username}
+                className="profile-avatar-image"
+              />
+            ) : (
+              user?.username?.[0]?.toUpperCase() || 'U'
+            )}
           </div>
           <div className="profile-details">
             <h1>{user?.username}</h1>

@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Grid3x3, 
   User, 
-  Settings
+  Settings,
+  Menu,
+  X
 } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const navigationItems = [
@@ -21,43 +25,63 @@ const Sidebar = () => {
     return false;
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="logo-icon">
-          <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
+    <>
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <div className="mobile-logo">
+          <div className="logo-icon">
+            <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
+          </div>
+          <span className="logo-text">OSOHUB</span>
         </div>
-        <span className="logo-text">OSOHUB</span>
+        <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.id}
-              to={item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={closeMobileMenu}></div>
+      )}
 
-      {/* Auth Buttons */}
-      <div className="sidebar-auth">
-        <Link to="/signup" className="auth-btn primary">
-          SIGN UP
-        </Link>
-        <Link to="/login" className="auth-btn secondary">
-          LOG IN
-        </Link>
+      {/* Sidebar */}
+      <div className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        {/* Desktop Logo */}
+        <div className="sidebar-logo">
+          <div className="logo-icon">
+            <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
+          </div>
+          <span className="logo-text">OSOHUB</span>
+        </div>
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.id}
+                to={item.path}
+                className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </div>
+    </>
   );
 };
 
