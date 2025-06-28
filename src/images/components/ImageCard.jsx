@@ -35,20 +35,17 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         try {
           debugLog('Loading like info for image:', image.id);
           
-          // Load both like count and like status in parallel
-          const [likeData, isLikedStatus] = await Promise.all([
-            imageService.getLikeCount(image.id),
-            imageService.checkIfLiked(image.id)
-          ]);
+          // Only load like count, assume not liked initially
+          const likeData = await imageService.getLikeCount(image.id);
           
           setLikeCount(likeData.count || 0);
-          setIsLiked(isLikedStatus);
+          setIsLiked(false); // Start with false, will be updated when user clicks
           setLikeCountLoaded(true);
           
           debugLog('Like info loaded:', { 
             imageId: image.id, 
             count: likeData.count, 
-            isLiked: isLikedStatus 
+            isLiked: false 
           });
         } catch (error) {
           debugLog('Failed to load like info:', { imageId: image.id, error: error.message });
@@ -82,6 +79,22 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         debugLog('Adding like...', { imageId: image.id });
         await imageService.likeImage(image.id);
         debugLog('Like added successfully');
+      }
+      
+      // Reload like count from server to ensure consistency
+      try {
+        const likeData = await imageService.getLikeCount(image.id);
+        setLikeCount(likeData.count || 0);
+        debugLog('Reloaded like count after action:', { 
+          imageId: image.id, 
+          count: likeData.count, 
+          isLiked: isLiked 
+        });
+      } catch (reloadError) {
+        debugLog('Failed to reload like count, keeping optimistic update', { 
+          imageId: image.id, 
+          error: reloadError.message 
+        });
       }
     } catch (error) {
       // Revert optimistic update on error
@@ -145,7 +158,11 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
               onClick={handleLike}
               disabled={isLoading}
             >
-              <Heart size={20} fill={isLiked ? 'white' : 'none'} />
+              <Heart 
+                size={20} 
+                fill={isLiked ? '#dc267f' : 'none'} 
+                color={isLiked ? '#dc267f' : 'white'}
+              />
             </button>
             
             <div className="options-container">

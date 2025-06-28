@@ -78,7 +78,10 @@ export const imageService = {
         data: response.data 
       });
       
-      // Return response data if available, otherwise return success indicator
+      // Backend returns 204 No Content, so check status instead of data
+      if (response.status === 204) {
+        return { success: true };
+      }
       return response.data || { success: true };
     } catch (error) {
       debugLog('Like error:', { imageId, error: error.message, status: error.response?.status });
@@ -98,7 +101,10 @@ export const imageService = {
         data: response.data 
       });
       
-      // Return response data if available, otherwise return success indicator
+      // Backend returns 204 No Content, so check status instead of data
+      if (response.status === 204) {
+        return { success: true };
+      }
       return response.data || { success: true };
     } catch (error) {
       debugLog('Unlike error:', { imageId, error: error.message, status: error.response?.status });

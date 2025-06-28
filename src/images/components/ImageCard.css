@@ -78,7 +78,20 @@
 }
 
 .like-btn.liked {
-  background: rgba(220, 38, 127, 0.8);
+  background: rgba(220, 38, 127, 0.9);
+  border: 2px solid #dc267f;
+  color: #ff1744;
+}
+
+.like-btn.liked svg {
+  fill: #ff1744;
+  color: #ff1744;
+}
+
+.like-btn.liked:hover {
+  background: rgba(220, 38, 127, 1);
+  transform: scale(1.15);
+  color: #ff1744;
 }
 
 .options-container {
