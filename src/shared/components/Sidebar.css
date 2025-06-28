@@ -1,0 +1,146 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 240px;
+  height: 100vh;
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 2rem;
+  margin-bottom: 3rem;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--text-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.logo-image {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.nav-item:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.sidebar-auth {
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.auth-btn.primary {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+.auth-btn.primary:hover {
+  background-color: var(--text-secondary);
+}
+
+.auth-btn.secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.auth-btn.secondary:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 1rem 0;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0 1rem;
+  }
+
+  .nav-item {
+    min-width: 120px;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .nav-item span {
+    font-size: 0.7rem;
+  }
+
+  .sidebar-auth {
+    flex-direction: row;
+    padding: 1rem;
+  }
+}

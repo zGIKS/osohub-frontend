@@ -1,0 +1,240 @@
+.profile {
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.profile-info {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-details h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.profile-bio {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--text-primary);
+}
+
+.profile-content {
+  width: 100%;
+}
+
+.profile-nav {
+  display: flex;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-btn.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
+
+.nav-btn:hover {
+  color: var(--text-primary);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--text-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty-profile p {
+  font-size: 1.1rem;
+}
+
+.empty-subtitle {
+  font-size: 0.9rem !important;
+  color: var(--text-muted);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .profile {
+    padding: 1rem;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .profile-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
+
+  .profile-details h1 {
+    font-size: 1.5rem;
+  }
+
+  .profile-stats {
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .settings-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-info {
+    gap: 1rem;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .profile-stats {
+    gap: 1rem;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
