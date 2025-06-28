@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
 import ImageUploadModal from '../components/ImageUploadModal';
 import { imageService } from '../services/imageService';
+import { getCurrentUserId, debugLog } from '../../config';
 import './Feed.css';
 
 const Feed = () => {
@@ -10,109 +11,117 @@ const Feed = () => {
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // Mock current user ID - in a real app, this would come from auth context
-  const currentUserId = localStorage.getItem('currentUserId') || '1';
+  // Get current user ID from config helper
+  const currentUserId = getCurrentUserId() || '1';
 
   useEffect(() => {
     loadFeed();
   }, []);
 
+  // Función para generar rango de fechas
+  const generateDateRange = (daysBack = 30) => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 0; i < daysBack; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    
+    return dates;
+  };
+
   const loadFeed = async () => {
     try {
       setLoading(true);
-      // For demo purposes, using mock data
-      // const feedData = await imageService.getFeed();
+      let allImages = [];
       
-      // Mock data for demonstration
-      const mockData = [
-        {
-          id: '1',
-          url: 'https://picsum.photos/400/400?random=1',
-          description: 'Beautiful sunset over the mountains',
-          userId: '1',
-          user: { username: 'photographer1' },
-          likeCount: 15,
-          isLiked: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          url: 'https://picsum.photos/400/400?random=2',
-          description: 'Urban architecture and city lights',
-          userId: '2',
-          user: { username: 'cityexplorer' },
-          likeCount: 23,
-          isLiked: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '3',
-          url: 'https://picsum.photos/400/400?random=3',
-          description: 'Minimalist design inspiration',
-          userId: '3',
-          user: { username: 'designer' },
-          likeCount: 8,
-          isLiked: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '4',
-          url: 'https://picsum.photos/400/400?random=4',
-          description: 'Nature photography at its finest',
-          userId: '1',
-          user: { username: 'photographer1' },
-          likeCount: 42,
-          isLiked: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '5',
-          url: 'https://picsum.photos/400/400?random=5',
-          description: 'Street art and urban culture',
-          userId: '4',
-          user: { username: 'streetartist' },
-          likeCount: 31,
-          isLiked: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '6',
-          url: 'https://picsum.photos/400/400?random=6',
-          description: 'Black and white photography',
-          userId: '5',
-          user: { username: 'bnwlover' },
-          likeCount: 18,
-          isLiked: false,
-          createdAt: new Date().toISOString()
+      // Generar fechas de los últimos 30 días para asegurar que veamos todas las imágenes
+      const dates = generateDateRange(30);
+      debugLog(`Loading feed for ${dates.length} dates`);
+      
+      // Procesar en lotes para evitar sobrecarga del servidor
+      const BATCH_SIZE = 5;
+      for (let i = 0; i < dates.length; i += BATCH_SIZE) {
+        const batch = dates.slice(i, i + BATCH_SIZE);
+        debugLog(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} with dates:`, batch);
+        
+        const promises = batch.map(async (date) => {
+          try {
+            const feedData = await imageService.getFeed(date);
+            debugLog(`Date ${date}: ${feedData?.length || 0} images found`);
+            return feedData && Array.isArray(feedData) ? feedData : [];
+          } catch (error) {
+            debugLog(`Date ${date}: No images or error`, error.message);
+            return []; // Si falla, devolver array vacío
+          }
+        });
+        
+        const batchResults = await Promise.all(promises);
+        batchResults.forEach(result => {
+          if (result.length > 0) {
+            allImages = [...allImages, ...result];
+          }
+        });
+        
+        debugLog(`Total images so far: ${allImages.length}`);
+        
+        // Pequeña pausa entre lotes para no sobrecargar el servidor
+        if (i + BATCH_SIZE < dates.length) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
-      ];
+      }
       
-      setImages(mockData);
+      debugLog(`Total raw images loaded: ${allImages.length}`);
+      
+      // Remover duplicados basado en image_id
+      const uniqueImages = allImages.filter((image, index, self) => 
+        index === self.findIndex(img => img.image_id === image.image_id)
+      );
+      
+      debugLog(`Unique images after deduplication: ${uniqueImages.length}`);
+      
+      // Transformar y ordenar por fecha (más reciente primero)
+      const transformedImages = transformImages(uniqueImages);
+      transformedImages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      debugLog(`Final transformed images: ${transformedImages.length}`);
+      setImages(transformedImages);
     } catch (error) {
       console.error('Error loading feed:', error);
+      setImages([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageUpload = async (file, description) => {
+  const transformImages = (images) => {
+    return images.map(image => ({
+      id: image.image_id,
+      url: image.image_url === 'null' || !image.image_url ? 
+           'https://via.placeholder.com/400x400?text=No+Image' : 
+           image.image_url,
+      description: image.title || 'Sin título',
+      title: image.title || 'Sin título',
+      userId: image.user_id,
+      user: { 
+        username: image.username || 'Usuario desconocido',
+        user_id: image.user_id 
+      },
+      likeCount: 0, // Por ahora hardcodeado
+      isLiked: false, // Por ahora hardcodeado
+      createdAt: image.uploaded_at,
+      image_id: image.image_id
+    }));
+  };
+
+  const handleImageUpload = async (file, title) => {
     try {
-      // In a real app, this would upload to your backend
-      // const result = await imageService.uploadImage(file, description);
-      
-      // For demo, just add a mock image
-      const newImage = {
-        id: Date.now().toString(),
-        url: URL.createObjectURL(file),
-        description: description,
-        userId: currentUserId,
-        user: { username: 'you' },
-        likeCount: 0,
-        isLiked: false,
-        createdAt: new Date().toISOString()
-      };
-      
-      setImages(prev => [newImage, ...prev]);
+      const result = await imageService.uploadImage(file, title);
+      await loadFeed(); // Reload feed after upload
+      setShowUploadModal(false);
+      return result;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
@@ -135,45 +144,59 @@ const Feed = () => {
   return (
     <div className="feed">
       <div className="feed-header">
-        <h1>FEED</h1>
-        <button
-          className="upload-btn"
-          onClick={() => setShowUploadModal(true)}
-        >
-          <Plus size={20} />
-          New Image
-        </button>
-      </div>
-
-      <div className="feed-grid">
-        {images.map((image) => (
-          <ImageCard
-            key={image.id}
-            image={image}
-            onDelete={handleImageDelete}
-            currentUserId={currentUserId}
-          />
-        ))}
-      </div>
-
-      {images.length === 0 && !loading && (
-        <div className="empty-feed">
-          <p>No images in the feed</p>
-          <button
+        <h1>Feed</h1>
+        <div className="feed-actions">
+          <button 
+            className="refresh-btn"
+            onClick={loadFeed}
+            disabled={loading}
+            title="Refresh feed"
+          >
+            <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+          </button>
+          <button 
             className="upload-btn"
             onClick={() => setShowUploadModal(true)}
           >
             <Plus size={20} />
-            Upload the first image
+            Upload Image
           </button>
+        </div>
+      </div>
+
+      {images.length === 0 ? (
+        <div className="empty-feed">
+          <div className="empty-feed-icon">
+            <Plus size={48} />
+          </div>
+          <h2>No images yet</h2>
+          <p>Be the first to share something amazing!</p>
+          <button 
+            className="upload-btn primary"
+            onClick={() => setShowUploadModal(true)}
+          >
+            Upload Your First Image
+          </button>
+        </div>
+      ) : (
+        <div className="images-grid">
+          {images.map((image) => (
+            <ImageCard
+              key={image.id}
+              image={image}
+              currentUserId={currentUserId}
+              onDelete={handleImageDelete}
+            />
+          ))}
         </div>
       )}
 
-      <ImageUploadModal
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        onUpload={handleImageUpload}
-      />
+      {showUploadModal && (
+        <ImageUploadModal
+          onClose={() => setShowUploadModal(false)}
+          onUpload={handleImageUpload}
+        />
+      )}
     </div>
   );
 };

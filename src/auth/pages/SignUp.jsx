@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import './Auth.css';
 
 const SignUp = () => {
@@ -16,6 +17,7 @@ const SignUp = () => {
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -44,15 +46,21 @@ const SignUp = () => {
     }
 
     try {
-      // Mock registration - in a real app, this would call your auth service
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const result = await signup({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        bio: '',
+        profile_picture_url: ''
+      });
       
-      // Mock successful registration
-      localStorage.setItem('authToken', 'mock-token');
-      localStorage.setItem('currentUserId', '1');
-      
-      navigate('/');
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.error || 'Error creating account. Please try again.');
+      }
     } catch (error) {
+      console.error('SignUp error:', error);
       setError('Error creating account. Please try again.');
     } finally {
       setLoading(false);
