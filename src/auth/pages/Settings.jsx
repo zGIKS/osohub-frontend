@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { User, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
 import { userService } from '../services/userService';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../hooks/useToast';
 import './Settings.css';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { refreshUser } = useAuth();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -37,7 +40,7 @@ const Settings = () => {
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
-        setMessage({ type: 'error', text: 'Failed to load user data' });
+        toast.error('Failed to load user data');
       } finally {
         setIsLoading(false);
       }
@@ -70,57 +73,75 @@ const Settings = () => {
     }));
   };
 
-  const handleSave = async () => {
+  const handleRemoveProfilePicture = async () => {
     setIsLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
-      let profilePictureUrl = formData.profile_picture_url;
-      
-      // If user selected a new profile image, upload it first
-      if (profileImageFile) {
-        const formDataUpload = new FormData();
-        formDataUpload.append('image', profileImageFile);
-        formDataUpload.append('description', 'Profile picture');
-        
-        const uploadResponse = await fetch('http://localhost:8080/api/images', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          },
-          body: formDataUpload
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          profilePictureUrl = uploadResult.url;
-        } else {
-          throw new Error('Failed to upload profile picture');
-        }
+      // Limpiar preview si existe
+      if (profileImagePreview) {
+        URL.revokeObjectURL(profileImagePreview);
+        setProfileImagePreview(null);
       }
-
-      // Update user profile with new data
-      await userService.updateUser({
-        username: formData.username,
-        bio: formData.bio,
-        profile_picture_url: profilePictureUrl
-      });
-
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
-      // Update formData with new profile picture URL
+      setProfileImageFile(null);
+      
+      // Llamar al servicio para generar y subir avatar por defecto
+      const result = await userService.removeProfilePicture();
+      
+      // Actualizar formData con la nueva URL del avatar por defecto
       setFormData(prev => ({
         ...prev,
-        profile_picture_url: profilePictureUrl
+        profile_picture_url: result.profile_picture_url || ''
       }));
-      // Clear file selection
+      
+      toast.success('Profile picture removed and default avatar set successfully!');
+      
+      // Refrescar el usuario en el contexto para actualizar toda la interfaz
+      await refreshUser();
+    } catch (error) {
+      console.error('Error removing profile picture:', error);
+      toast.error(error.response?.data?.message || 'Failed to remove profile picture. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+
+    try {
+      // Preparar datos para el update
+      const updateData = {
+        username: formData.username,
+        bio: formData.bio
+      };
+
+      // Si hay una imagen nueva, agregarla
+      if (profileImageFile) {
+        updateData.profile_picture = profileImageFile;
+      }
+
+      // Actualizar perfil usando FormData
+      const result = await userService.updateUser(updateData);
+
+      toast.success('Profile updated successfully!');
+      
+      // Limpiar selección de archivo
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      
+      // Actualizar formData si la respuesta incluye nueva URL de imagen
+      if (result && result.profile_picture_url) {
+        setFormData(prev => ({
+          ...prev,
+          profile_picture_url: result.profile_picture_url
+        }));
+      }
+
+      // Refrescar el usuario en el contexto para actualizar el sidebar
+      await refreshUser();
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Network error. Please check your connection and try again.' 
-      });
+      toast.error(error.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -128,22 +149,21 @@ const Settings = () => {
 
   const handlePasswordSave = async () => {
     setIsLoading(true);
-    setMessage({ type: '', text: '' });
 
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Please fill in all password fields.' });
+      toast.error('Please fill in all password fields.');
       setIsLoading(false);
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match.' });
+      toast.error('New passwords do not match.');
       setIsLoading(false);
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'New password must be at least 6 characters long.' });
+      toast.error('New password must be at least 6 characters long.');
       setIsLoading(false);
       return;
     }
@@ -153,7 +173,7 @@ const Settings = () => {
         password: passwordData.newPassword
       });
 
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      toast.success('Password changed successfully!');
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -161,10 +181,7 @@ const Settings = () => {
       });
     } catch (error) {
       console.error('Error changing password:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Error changing password. Please check your current password.' 
-      });
+      toast.error('Error changing password. Please check your current password.');
     } finally {
       setIsLoading(false);
     }
@@ -183,7 +200,6 @@ const Settings = () => {
     });
     setProfileImageFile(null);
     setProfileImagePreview(null);
-    setMessage({ type: '', text: '' });
   };
 
   const renderProfileTab = () => (
@@ -243,18 +259,9 @@ const Settings = () => {
               <button 
                 type="button" 
                 className="remove-avatar-btn"
-                onClick={() => {
-                  setProfileImageFile(null);
-                  setProfileImagePreview(null);
-                  if (profileImagePreview) {
-                    URL.revokeObjectURL(profileImagePreview);
-                  }
-                  setFormData(prev => ({
-                    ...prev,
-                    profile_picture_url: ''
-                  }));
-                }}
-                title="Remove profile picture"
+                onClick={handleRemoveProfilePicture}
+                disabled={isLoading}
+                title="Remove profile picture and set default"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
@@ -341,17 +348,6 @@ const Settings = () => {
         </div>
 
         <div className="settings-main">
-          {message.text && (
-            <div className={`message ${message.type}`}>
-              {message.type === 'success' ? (
-                <CheckCircle size={20} />
-              ) : (
-                <AlertCircle size={20} />
-              )}
-              <span>{message.text}</span>
-            </div>
-          )}
-
           {renderActiveTab()}
           
           {activeTab === 'profile' && (

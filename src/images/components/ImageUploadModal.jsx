@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 import './ImageUploadModal.css';
 
 const ImageUploadModal = ({ isOpen, onClose, onUpload }) => {
@@ -8,6 +9,7 @@ const ImageUploadModal = ({ isOpen, onClose, onUpload }) => {
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const toast = useToast();
 
   const handleFileSelect = (file) => {
     if (file && file.type.startsWith('image/')) {
@@ -44,14 +46,19 @@ const ImageUploadModal = ({ isOpen, onClose, onUpload }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile || !description.trim()) return;
+    if (!selectedFile || !description.trim()) {
+      toast.error('Please select a file and provide a title.');
+      return;
+    }
 
     setIsUploading(true);
     try {
       await onUpload(selectedFile, description);
+      toast.success('Image uploaded successfully!');
       handleClose();
     } catch (error) {
       console.error('Upload failed:', error);
+      toast.error(error.message || 'Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
     }

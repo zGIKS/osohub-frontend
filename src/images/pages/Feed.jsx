@@ -16,6 +16,18 @@ const Feed = () => {
 
   useEffect(() => {
     loadFeed();
+    
+    // Escuchar eventos de actualización de perfil para recargar el feed
+    const handleUserProfileUpdate = () => {
+      debugLog('User profile updated, reloading feed...');
+      loadFeed();
+    };
+    
+    window.addEventListener('userProfileUpdated', handleUserProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleUserProfileUpdate);
+    };
   }, []);
 
   // Función para generar rango de fechas
@@ -97,6 +109,8 @@ const Feed = () => {
   };
 
   const transformImages = (images) => {
+    debugLog('Raw images data before transform:', images.slice(0, 2)); // Solo los primeros 2 para no saturar logs
+    
     return images.map(image => ({
       id: image.image_id,
       url: image.image_url === 'null' || !image.image_url ? 
@@ -107,10 +121,11 @@ const Feed = () => {
       userId: image.user_id,
       user: { 
         username: image.username || 'Usuario desconocido',
-        user_id: image.user_id 
+        user_id: image.user_id,
+        profile_picture_url: image.user_profile_picture_url || null
       },
-      likeCount: 0, // Por ahora hardcodeado
-      isLiked: false, // Por ahora hardcodeado
+      likeCount: image.like_count || 0, // Use backend data if available
+      isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id
     }));
@@ -118,12 +133,23 @@ const Feed = () => {
 
   const handleImageUpload = async (file, title) => {
     try {
+      debugLog('Starting image upload...', { fileName: file.name, title });
       const result = await imageService.uploadImage(file, title);
-      await loadFeed(); // Reload feed after upload
+      debugLog('Upload completed successfully:', result);
+      
+      // Reload feed after successful upload
+      await loadFeed();
       setShowUploadModal(false);
       return result;
     } catch (error) {
       console.error('Error uploading image:', error);
+      debugLog('Upload failed:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      // Re-throw the error so the modal can handle it
       throw error;
     }
   };
@@ -193,6 +219,7 @@ const Feed = () => {
 
       {showUploadModal && (
         <ImageUploadModal
+          isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           onUpload={handleImageUpload}
         />

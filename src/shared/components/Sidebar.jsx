@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Grid3x3, 
@@ -9,12 +9,18 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { debugLog } from '../../config';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  // Debug: Log user data to see what we're getting
+  useEffect(() => {
+    debugLog('Sidebar user data:', user);
+  }, [user]);
 
   const navigationItems = [
     { icon: Grid3x3, label: 'FEED', path: '/', id: 'feed' },
@@ -93,13 +99,31 @@ const Sidebar = () => {
             {user && (
               <div className="user-info">
                 <div className="user-avatar">
-                  {user.profile_picture_url ? (
-                    <img src={user.profile_picture_url} alt={user.username} />
-                  ) : (
-                    <span>{user.username?.[0]?.toUpperCase() || 'U'}</span>
-                  )}
+                  {user.profile_picture_url && 
+                   user.profile_picture_url !== 'null' && 
+                   user.profile_picture_url !== '' && 
+                   user.profile_picture_url !== 'undefined' ? (
+                    <img 
+                      src={user.profile_picture_url} 
+                      alt={user.username || 'Usuario'}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span 
+                    style={{ 
+                      display: user.profile_picture_url && 
+                              user.profile_picture_url !== 'null' && 
+                              user.profile_picture_url !== '' && 
+                              user.profile_picture_url !== 'undefined' ? 'none' : 'flex' 
+                    }}
+                  >
+                    {(user.username || user.name || 'U')[0]?.toUpperCase()}
+                  </span>
                 </div>
-                <span className="username">{user.username}</span>
+                <span className="username">{user.username || user.name || 'Usuario'}</span>
               </div>
             )}
             <button className="nav-item logout-btn" onClick={handleLogout}>
