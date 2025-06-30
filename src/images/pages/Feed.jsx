@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
 import ImageUploadModal from '../components/ImageUploadModal';
+import ImageViewModal from '../components/ImageViewModal';
 import { imageService } from '../services/imageService';
 import { getCurrentUserId, debugLog } from '../../config';
 import './Feed.css';
@@ -10,6 +11,8 @@ const Feed = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Get current user ID from config helper
   const currentUserId = getCurrentUserId() || '1';
@@ -158,6 +161,12 @@ const Feed = () => {
     setImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  const handleImageClick = (image) => {
+    const index = images.findIndex(img => img.id === image.id);
+    setSelectedImageIndex(index);
+    setSelectedImage(image);
+  };
+
   if (loading) {
     return (
       <div className="feed-loading">
@@ -211,7 +220,7 @@ const Feed = () => {
               key={image.id}
               image={image}
               currentUserId={currentUserId}
-              onDelete={handleImageDelete}
+              onImageClick={handleImageClick}
             />
           ))}
         </div>
@@ -222,6 +231,22 @@ const Feed = () => {
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           onUpload={handleImageUpload}
+        />
+      )}
+
+      {selectedImage && (
+        <ImageViewModal
+          isOpen={!!selectedImage}
+          image={selectedImage}
+          images={images}
+          currentIndex={selectedImageIndex}
+          currentUserId={currentUserId}
+          onClose={() => setSelectedImage(null)}
+          onDelete={handleImageDelete}
+          onImageChange={(newImage, newIndex) => {
+            setSelectedImage(newImage);
+            setSelectedImageIndex(newIndex);
+          }}
         />
       )}
     </div>
