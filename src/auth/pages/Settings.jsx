@@ -17,11 +17,27 @@ const Settings = () => {
   });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [showProfilePictureMenu, setShowProfilePictureMenu] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Bio word limit
+  const BIO_WORD_LIMIT = 50;
+
+  // Helper function to count words
+  const countWords = (text) => {
+    if (!text || text.trim() === '') return 0;
+    return text.trim().split(/\s+/).length;
+  };
+
+  // Helper function to get remaining words
+  const getRemainingWords = () => {
+    const currentWords = countWords(formData.bio);
+    return BIO_WORD_LIMIT - currentWords;
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -50,6 +66,15 @@ const Settings = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
+    // Check word limit for bio field
+    if (field === 'bio') {
+      const wordCount = countWords(value);
+      if (wordCount > BIO_WORD_LIMIT) {
+        toast.error(`Bio cannot exceed ${BIO_WORD_LIMIT} words`);
+        return; // Don't update if over limit
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -205,6 +230,79 @@ const Settings = () => {
   const renderProfileTab = () => (
     <div className="settings-section">
       <h3>Profile Information</h3>
+      
+      {/* Profile Picture - Clickable with smaller size */}
+      <div className="form-group">
+        <label>Profile Picture</label>
+        <div className="profile-picture-section">
+          <div 
+            className="profile-picture-clickable"
+            onClick={() => setShowProfilePictureMenu(true)}
+          >
+            {(profileImagePreview || formData.profile_picture_url) ? (
+              <img 
+                src={profileImagePreview || formData.profile_picture_url} 
+                alt="Profile preview" 
+                className="profile-picture-small"
+              />
+            ) : (
+              <div className="profile-picture-placeholder">
+                <span>{formData.username?.[0]?.toUpperCase() || 'U'}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Profile Picture Menu Popup */}
+        {showProfilePictureMenu && (
+          <>
+            <div 
+              className="profile-menu-overlay" 
+              onClick={() => setShowProfilePictureMenu(false)}
+            ></div>
+            <div className="profile-picture-menu">
+              <input
+                type="file"
+                id="profile-picture-hidden"
+                accept="image/*"
+                onChange={handleProfileImageChange}
+                style={{ display: 'none' }}
+              />
+              <button 
+                className="profile-menu-item change"
+                onClick={() => {
+                  document.getElementById('profile-picture-hidden').click();
+                  setShowProfilePictureMenu(false);
+                }}
+              >
+                Change Picture
+              </button>
+              
+              {(profileImagePreview || formData.profile_picture_url) && (
+                <button 
+                  className="profile-menu-item remove"
+                  onClick={() => {
+                    handleRemoveProfilePicture();
+                    setShowProfilePictureMenu(false);
+                  }}
+                  disabled={isLoading}
+                >
+                  Remove Profile Picture
+                </button>
+              )}
+              
+              <button 
+                className="profile-menu-item cancel"
+                onClick={() => setShowProfilePictureMenu(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Username field */}
       <div className="form-group">
         <label>Username</label>
         <input
@@ -214,60 +312,19 @@ const Settings = () => {
           placeholder="Your username"
         />
       </div>
+      
+      {/* Biography field */}
       <div className="form-group">
         <label>Biography</label>
-        <textarea
-          value={formData.bio}
-          onChange={(e) => handleInputChange('bio', e.target.value)}
-          placeholder="Tell us about yourself..."
-          rows="4"
-        />
-      </div>
-      <div className="form-group">
-        <label>Profile Picture</label>
-        <div className="profile-picture-upload">
-          <div className="avatar-upload-container">
-            <div className="avatar-preview">
-              {(profileImagePreview || formData.profile_picture_url) ? (
-                <img 
-                  src={profileImagePreview || formData.profile_picture_url} 
-                  alt="Profile preview" 
-                  className="avatar-image"
-                />
-              ) : (
-                <div className="avatar-placeholder">
-                  <span>{formData.username?.[0]?.toUpperCase() || 'U'}</span>
-                </div>
-              )}
-              <div className="avatar-overlay">
-                <input
-                  type="file"
-                  id="profile-picture"
-                  accept="image/*"
-                  onChange={handleProfileImageChange}
-                  style={{ display: 'none' }}
-                />
-                <label htmlFor="profile-picture" className="avatar-upload-btn">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
-                  </svg>
-                  <span>Change Photo</span>
-                </label>
-              </div>
-            </div>
-            {(profileImagePreview || formData.profile_picture_url) && (
-              <button 
-                type="button" 
-                className="remove-avatar-btn"
-                onClick={handleRemoveProfilePicture}
-                disabled={isLoading}
-                title="Remove profile picture and set default"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
-                </svg>
-              </button>
-            )}
+        <div className="bio-input-container">
+          <textarea
+            value={formData.bio}
+            onChange={(e) => handleInputChange('bio', e.target.value)}
+            placeholder="Tell us about yourself..."
+            rows="4"
+          />
+          <div className={`bio-word-counter ${getRemainingWords() < 0 ? 'over-limit' : ''}`}>
+            {countWords(formData.bio)}/{BIO_WORD_LIMIT} words
           </div>
         </div>
       </div>
