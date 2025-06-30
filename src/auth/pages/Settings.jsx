@@ -24,6 +24,7 @@ const Settings = () => {
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [isProfilePictureRemoved, setIsProfilePictureRemoved] = useState(false);
+  const [lastBioErrorType, setLastBioErrorType] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -61,9 +62,15 @@ const Settings = () => {
   const handleInputChange = (field, value) => {
     // Validar biografía con múltiples restricciones
     if (field === 'bio') {
+      let errorType = null;
+      
       // 1. Límite de caracteres totales (500 caracteres máximo)
       if (value.length > 500) {
-        toast.error('Biography cannot exceed 500 characters. Current: ' + value.length + ' characters.');
+        errorType = 'char_limit';
+        if (lastBioErrorType !== errorType) {
+          toast.error('Biography cannot exceed 500 characters.');
+          setLastBioErrorType(errorType);
+        }
         return;
       }
 
@@ -74,13 +81,21 @@ const Settings = () => {
       // 3. Verificar que ninguna palabra sea demasiado larga (30 caracteres máximo por palabra)
       const longWords = words.filter(word => word.length > 30);
       if (longWords.length > 0) {
-        toast.error(`Words cannot exceed 30 characters. Found: "${longWords[0].substring(0, 20)}..."`);
+        errorType = 'long_word';
+        if (lastBioErrorType !== errorType) {
+          toast.error(`Words cannot exceed 30 characters. Found: "${longWords[0].substring(0, 20)}..."`);
+          setLastBioErrorType(errorType);
+        }
         return;
       }
 
       // 4. Límite de palabras (50 palabras máximo)
       if (wordCount > 50) {
-        toast.error('Biography cannot exceed 50 words. Current: ' + wordCount + ' words.');
+        errorType = 'word_limit';
+        if (lastBioErrorType !== errorType) {
+          toast.error('Biography cannot exceed 50 words.');
+          setLastBioErrorType(errorType);
+        }
         return;
       }
 
@@ -98,9 +113,18 @@ const Settings = () => {
         }
         const nonSpaceChars = cleanText.replace(/\s/g, '').length;
         if (nonSpaceChars > 10 && (maxCharCount / nonSpaceChars) > 0.7) {
-          toast.error('Biography contains too many repeated characters. Please write meaningful content.');
+          errorType = 'repetitive';
+          if (lastBioErrorType !== errorType) {
+            toast.error('Biography contains too many repeated characters. Please write meaningful content.');
+            setLastBioErrorType(errorType);
+          }
           return;
         }
+      }
+
+      // Si llegamos aquí, no hay errores, limpiar el último error
+      if (lastBioErrorType !== null) {
+        setLastBioErrorType(null);
       }
     }
     
@@ -265,6 +289,7 @@ const Settings = () => {
     setProfileImageFile(null);
     setProfileImagePreview(null);
     setIsProfilePictureRemoved(false);
+    setLastBioErrorType(null); // Resetear estado de errores
   };
 
   const renderProfileTab = () => (

@@ -1,10 +1,7 @@
 .toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  min-width: 300px;
+  position: relative;
+  width: 100%;
   max-width: 400px;
-  z-index: 9999;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
@@ -120,11 +117,8 @@
 /* Mobile responsiveness */
 @media (max-width: 480px) {
   .toast {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    min-width: unset;
-    max-width: unset;
+    width: 100%;
+    max-width: none;
   }
   
   .toast-content {
