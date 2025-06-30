@@ -80,6 +80,15 @@
   overflow: hidden;
 }
 
+.logo-icon-simple {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .logo-image {
   width: 24px;
   height: 24px;
@@ -208,12 +217,99 @@
   border: none;
   width: 100%;
   justify-content: flex-start;
-  color: #ef4444 !important;
+  color: #ef4444;
   cursor: pointer;
 }
 
 .logout-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1) !important;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Profile avatar styles in navigation */
+.profile-nav-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.profile-nav-fallback {
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+}
+
+/* More Menu Styles */
+.more-menu-container {
+  position: relative;
+}
+
+.more-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.more-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+}
+
+.more-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 0.5rem;
+  z-index: 999;
+  overflow: hidden;
+}
+
+.more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.more-menu-item:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.more-menu-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.more-menu-item.icon-only {
+  justify-content: center;
+  min-width: 44px;
 }
 
 /* Tablet responsiveness */
