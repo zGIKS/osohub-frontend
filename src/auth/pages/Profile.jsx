@@ -149,25 +149,23 @@ const Profile = () => {
           <div className="profile-details">
             <h1>{user?.username || user?.name || 'Usuario'}</h1>
             <p className="profile-bio">{user?.bio || 'Sin biografía'}</p>
-            <div className="profile-stats">
-              <div className="stat">
-                <span className="stat-number">{userImages.length}</span>
-                <span className="stat-label">Images</span>
-              </div>
-            </div>
           </div>
         </div>
-        <Link to="/settings" className="settings-btn">
-          <Settings size={20} />
-          Settings
-        </Link>
+        <div className="profile-actions">
+          <Link to="/settings" className="edit-profile-btn">
+            Edit Profile
+          </Link>
+          <Link to="/settings" className="settings-btn">
+            <Settings size={16} />
+            Settings
+          </Link>
+        </div>
       </div>
 
       <div className="profile-content">
         <div className="profile-nav">
           <button className="nav-btn active">
-            <Grid3x3 size={16} />
-            Images
+            RECENT
           </button>
         </div>
 
