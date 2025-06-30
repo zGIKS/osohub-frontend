@@ -287,6 +287,8 @@
   gap: 1rem;
 }
 
+/* Pending changes indicator - REMOVED (now using toast notifications) */
+
 .avatar-preview {
   position: relative;
   width: 120px;
@@ -406,7 +408,7 @@
   background-color: var(--text-secondary);
 }
 
-.profile-picture-preview {
+.profile-picture-status {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -437,6 +439,21 @@
 
 .remove-image-btn:hover {
   background-color: #c82333;
+}
+
+/* Biography word count */
+.bio-word-count {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  text-align: right;
+}
+
+.bio-word-count span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 /* Mobile responsiveness */

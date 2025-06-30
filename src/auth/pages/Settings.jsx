@@ -3,6 +3,7 @@ import { User, Lock } from 'lucide-react';
 import { userService } from '../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
+import { debugLog } from '../../config';
 import './Settings.css';
 
 const Settings = () => {
@@ -15,8 +16,14 @@ const Settings = () => {
     bio: '',
     profile_picture_url: ''
   });
+  const [originalFormData, setOriginalFormData] = useState({
+    username: '',
+    bio: '',
+    profile_picture_url: ''
+  });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [isProfilePictureRemoved, setIsProfilePictureRemoved] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -33,11 +40,13 @@ const Settings = () => {
       setIsLoading(true);
       try {
         const userData = await userService.getCurrentUser();
-        setFormData({
+        const userFormData = {
           username: userData.username || '',
           bio: userData.bio || '',
           profile_picture_url: userData.profile_picture_url || ''
-        });
+        };
+        setFormData(userFormData);
+        setOriginalFormData(userFormData); // Guardar datos originales para comparación
       } catch (error) {
         console.error('Error fetching user data:', error);
         toast.error('Failed to load user data');
@@ -50,6 +59,51 @@ const Settings = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
+    // Validar biografía con múltiples restricciones
+    if (field === 'bio') {
+      // 1. Límite de caracteres totales (500 caracteres máximo)
+      if (value.length > 500) {
+        toast.error('Biography cannot exceed 500 characters. Current: ' + value.length + ' characters.');
+        return;
+      }
+
+      // 2. Contar palabras y validar longitud máxima por palabra
+      const words = value.trim().split(/\s+/).filter(word => word.length > 0);
+      const wordCount = words.length;
+
+      // 3. Verificar que ninguna palabra sea demasiado larga (30 caracteres máximo por palabra)
+      const longWords = words.filter(word => word.length > 30);
+      if (longWords.length > 0) {
+        toast.error(`Words cannot exceed 30 characters. Found: "${longWords[0].substring(0, 20)}..."`);
+        return;
+      }
+
+      // 4. Límite de palabras (50 palabras máximo)
+      if (wordCount > 50) {
+        toast.error('Biography cannot exceed 50 words. Current: ' + wordCount + ' words.');
+        return;
+      }
+
+      // 5. Verificar que no sea solo espacios o caracteres repetitivos
+      const cleanText = value.trim().replace(/\s+/g, ' ');
+      if (cleanText.length > 0) {
+        // Detectar texto repetitivo (más del 70% del mismo carácter)
+        const charCount = {};
+        let maxCharCount = 0;
+        for (let char of cleanText.toLowerCase()) {
+          if (char !== ' ') {
+            charCount[char] = (charCount[char] || 0) + 1;
+            maxCharCount = Math.max(maxCharCount, charCount[char]);
+          }
+        }
+        const nonSpaceChars = cleanText.replace(/\s/g, '').length;
+        if (nonSpaceChars > 10 && (maxCharCount / nonSpaceChars) > 0.7) {
+          toast.error('Biography contains too many repeated characters. Please write meaningful content.');
+          return;
+        }
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -63,6 +117,10 @@ const Settings = () => {
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setProfileImagePreview(previewUrl);
+      // Reset the remove flag since user is selecting a new image
+      setIsProfilePictureRemoved(false);
+      // Show toast notification
+      toast.success('New profile picture selected. Click "Save Changes" to apply.');
     }
   };
 
@@ -73,36 +131,16 @@ const Settings = () => {
     }));
   };
 
-  const handleRemoveProfilePicture = async () => {
-    setIsLoading(true);
-
-    try {
-      // Limpiar preview si existe
-      if (profileImagePreview) {
-        URL.revokeObjectURL(profileImagePreview);
-        setProfileImagePreview(null);
-      }
-      setProfileImageFile(null);
-      
-      // Llamar al servicio para generar y subir avatar por defecto
-      const result = await userService.removeProfilePicture();
-      
-      // Actualizar formData con la nueva URL del avatar por defecto
-      setFormData(prev => ({
-        ...prev,
-        profile_picture_url: result.profile_picture_url || ''
-      }));
-      
-      toast.success('Profile picture removed and default avatar set successfully!');
-      
-      // Refrescar el usuario en el contexto para actualizar toda la interfaz
-      await refreshUser();
-    } catch (error) {
-      console.error('Error removing profile picture:', error);
-      toast.error(error.response?.data?.message || 'Failed to remove profile picture. Please try again.');
-    } finally {
-      setIsLoading(false);
+  const handleRemoveProfilePicture = () => {
+    // Solo limpiar preview y marcar para eliminación, no hacer el update inmediatamente
+    if (profileImagePreview) {
+      URL.revokeObjectURL(profileImagePreview);
+      setProfileImagePreview(null);
     }
+    setProfileImageFile(null);
+    setIsProfilePictureRemoved(true);
+    // Show toast notification
+    toast.success('Profile picture will be removed. Click "Save Changes" to apply.');
   };
 
   const handleSave = async () => {
@@ -110,32 +148,61 @@ const Settings = () => {
 
     try {
       // Preparar datos para el update
-      const updateData = {
-        username: formData.username,
-        bio: formData.bio
-      };
+      const updateData = {};
 
+      // Verificar qué campos han cambiado y agregarlos al updateData
+      if (formData.username !== originalFormData.username) {
+        updateData.username = formData.username;
+      }
+      if (formData.bio !== originalFormData.bio) {
+        updateData.bio = formData.bio;
+      }
+
+      // Si se marcó para eliminar la foto de perfil
+      if (isProfilePictureRemoved) {
+        // Llamar al servicio para generar y subir avatar por defecto
+        const result = await userService.removeProfilePicture();
+        
+        // Actualizar formData con la nueva URL del avatar por defecto
+        const newFormData = {
+          ...formData,
+          profile_picture_url: result.profile_picture_url || ''
+        };
+        setFormData(newFormData);
+        setOriginalFormData(newFormData);
+        
+        setIsProfilePictureRemoved(false);
+        toast.success('Profile picture removed and default avatar set successfully!');
+      }
       // Si hay una imagen nueva, agregarla
-      if (profileImageFile) {
+      else if (profileImageFile) {
         updateData.profile_picture = profileImageFile;
       }
 
-      // Actualizar perfil usando FormData
-      const result = await userService.updateUser(updateData);
-
-      toast.success('Profile updated successfully!');
+      // Solo hacer update de usuario si hay datos que actualizar
+      if (Object.keys(updateData).length > 0) {
+        debugLog('Updating user with data:', updateData);
+        
+        const result = await userService.updateUser(updateData);
+        
+        // Actualizar formData si la respuesta incluye nueva URL de imagen
+        let newFormData = { ...formData };
+        if (result && result.profile_picture_url) {
+          newFormData.profile_picture_url = result.profile_picture_url;
+          setFormData(newFormData);
+        }
+        
+        // Actualizar datos originales para futuras comparaciones
+        setOriginalFormData(newFormData);
+        
+        toast.success('Profile updated successfully!');
+      } else if (!isProfilePictureRemoved) {
+        toast.info('No changes to save.');
+      }
       
       // Limpiar selección de archivo
       setProfileImageFile(null);
       setProfileImagePreview(null);
-      
-      // Actualizar formData si la respuesta incluye nueva URL de imagen
-      if (result && result.profile_picture_url) {
-        setFormData(prev => ({
-          ...prev,
-          profile_picture_url: result.profile_picture_url
-        }));
-      }
 
       // Refrescar el usuario en el contexto para actualizar el sidebar
       await refreshUser();
@@ -188,11 +255,8 @@ const Settings = () => {
   };
 
   const handleCancel = () => {
-    setFormData({
-      username: '',
-      bio: '',
-      profile_picture_url: ''
-    });
+    // Restaurar datos originales
+    setFormData({ ...originalFormData });
     setPasswordData({
       currentPassword: '',
       newPassword: '',
@@ -200,6 +264,7 @@ const Settings = () => {
     });
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setIsProfilePictureRemoved(false);
   };
 
   const renderProfileTab = () => (
@@ -222,19 +287,73 @@ const Settings = () => {
           placeholder="Tell us about yourself..."
           rows="4"
         />
+        <div className="bio-word-count">
+          {(() => {
+            const words = formData.bio.trim().split(/\s+/).filter(word => word.length > 0);
+            const wordCount = formData.bio.trim() === '' ? 0 : words.length;
+            const charCount = formData.bio.length;
+            const isWordOverLimit = wordCount > 50;
+            const isCharOverLimit = charCount > 500;
+            const hasLongWords = words.some(word => word.length > 30);
+            
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <span style={{ 
+                  fontSize: '0.8rem', 
+                  color: isWordOverLimit ? '#ef4444' : 'var(--text-secondary)',
+                  fontWeight: isWordOverLimit ? '500' : 'normal'
+                }}>
+                  Words: {wordCount}/50
+                  {isWordOverLimit && ' (exceeds limit)'}
+                </span>
+                <span style={{ 
+                  fontSize: '0.8rem', 
+                  color: isCharOverLimit ? '#ef4444' : 'var(--text-secondary)',
+                  fontWeight: isCharOverLimit ? '500' : 'normal'
+                }}>
+                  Characters: {charCount}/500
+                  {isCharOverLimit && ' (exceeds limit)'}
+                </span>
+                {hasLongWords && (
+                  <span style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#ef4444',
+                    fontWeight: '500'
+                  }}>
+                    ⚠️ Some words are too long (max 30 characters per word)
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+        </div>
       </div>
       <div className="form-group">
         <label>Profile Picture</label>
         <div className="profile-picture-upload">
           <div className="avatar-upload-container">
             <div className="avatar-preview">
-              {(profileImagePreview || formData.profile_picture_url) ? (
+              {profileImagePreview ? (
+                // Mostrar imagen nueva seleccionada
                 <img 
-                  src={profileImagePreview || formData.profile_picture_url} 
+                  src={profileImagePreview} 
+                  alt="Profile preview" 
+                  className="avatar-image"
+                />
+              ) : isProfilePictureRemoved ? (
+                // Mostrar avatar placeholder si se marcó para eliminación
+                <div className="avatar-placeholder">
+                  <span>{formData.username?.[0]?.toUpperCase() || 'U'}</span>
+                </div>
+              ) : formData.profile_picture_url ? (
+                // Mostrar imagen actual del usuario
+                <img 
+                  src={formData.profile_picture_url} 
                   alt="Profile preview" 
                   className="avatar-image"
                 />
               ) : (
+                // Mostrar placeholder por defecto
                 <div className="avatar-placeholder">
                   <span>{formData.username?.[0]?.toUpperCase() || 'U'}</span>
                 </div>
@@ -255,13 +374,13 @@ const Settings = () => {
                 </label>
               </div>
             </div>
-            {(profileImagePreview || formData.profile_picture_url) && (
+            {(profileImagePreview || (formData.profile_picture_url && !isProfilePictureRemoved)) && (
               <button 
                 type="button" 
                 className="remove-avatar-btn"
                 onClick={handleRemoveProfilePicture}
                 disabled={isLoading}
-                title="Remove profile picture and set default"
+                title="Remove profile picture"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
