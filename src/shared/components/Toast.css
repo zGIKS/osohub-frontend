@@ -22,16 +22,12 @@
 }
 
 .toast-success {
-  border-left-color: #10b981;
+  border-left-color: var(--text-primary);
 }
 
 .toast-success .toast-content {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.toast-success .toast-icon {
-  color: #10b981;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
 }
 
 .toast-error {
@@ -39,8 +35,8 @@
 }
 
 .toast-error .toast-content {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--bg-primary);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .toast-error .toast-icon {
@@ -52,8 +48,8 @@
 }
 
 .toast-info .toast-content {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--bg-primary);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .toast-info .toast-icon {
@@ -144,15 +140,18 @@
   }
   
   .toast-success .toast-content {
-    background: rgba(16, 185, 129, 0.15);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
   }
   
   .toast-error .toast-content {
-    background: rgba(239, 68, 68, 0.15);
+    background: var(--bg-primary);
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
   
   .toast-info .toast-content {
-    background: rgba(59, 130, 246, 0.15);
+    background: var(--bg-primary);
+    border: 1px solid rgba(59, 130, 246, 0.3);
   }
   
   .toast-message {
