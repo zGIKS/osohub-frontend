@@ -36,6 +36,8 @@ const config = {
     CREATE_USER: '/users',
     UPDATE_PROFILE: '/users/me',
     BAN_USER: '/users/:user_id/ban',
+    GET_PUBLIC_PROFILE: '/profile/:username',
+    GET_SHARE_LINK: '/users/me/share-link',
     
     // Imágenes
     GET_FEED: '/feed', // Supports ?day_bucket=YYYY-MM-DD or no params for all images
@@ -48,11 +50,13 @@ const config = {
     LIKE_IMAGE: '/images/:image_id/like',
     UNLIKE_IMAGE: '/images/:image_id/like',
     GET_LIKES_COUNT: '/images/:image_id/likes/count',
-    CHECK_IF_LIKED: '/images/:image_id/like/status', // New endpoint to check if user liked image
+    CHECK_IF_LIKED: '/images/:image_id/like/status',
     
     // Reports
     REPORT_IMAGE: '/images/:image_id/report',
     GET_REPORTS_COUNT: '/images/:image_id/reports/count',
+    GET_REPORT_CATEGORIES: '/reports/categories',
+    GET_REPORTS_BY_CATEGORY: '/reports/by-category',
   }
 };
 

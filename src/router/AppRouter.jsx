@@ -5,6 +5,7 @@ import Profile from '../auth/pages/Profile';
 import Login from '../auth/pages/Login';
 import SignUp from '../auth/pages/SignUp';
 import Settings from '../auth/pages/Settings';
+import PublicProfile from '../pages/PublicProfile';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -58,6 +59,10 @@ const AppRouter = () => {
     {
       path: '/signup',
       element: isAuthenticated ? <Navigate to="/" replace /> : <SignUp />,
+    },
+    {
+      path: '/profile/:username',
+      element: <PublicProfile />, // No authentication required for public profiles
     },
   ]);
 

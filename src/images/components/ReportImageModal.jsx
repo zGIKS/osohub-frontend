@@ -1,18 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Flag, AlertTriangle } from 'lucide-react';
+import { imageService } from '../services/imageService';
+import { debugLog } from '../../config';
 import './ReportImageModal.css';
 
 const ReportImageModal = ({ isOpen, onClose, onReport, isLoading = false }) => {
+  const [category, setCategory] = useState('');
   const [reason, setReason] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCategories();
+    }
+  }, [isOpen]);
+
+  const loadCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      debugLog('Loading report categories...');
+      const categoriesData = await imageService.getReportCategories();
+      setCategories(categoriesData);
+      debugLog('Categories loaded:', categoriesData);
+    } catch (error) {
+      console.error('Failed to load report categories:', error);
+      debugLog('Failed to load categories, using fallback');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const getWordCount = (text) => {
+    return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!reason.trim()) return;
+    if (!category || !reason.trim()) return;
     
-    onReport(reason.trim());
+    onReport(category, reason.trim());
   };
 
   const handleClose = () => {
+    setCategory('');
     setReason('');
     onClose();
   };
@@ -38,20 +69,52 @@ const ReportImageModal = ({ isOpen, onClose, onReport, isLoading = false }) => {
             <p>Help us understand what's wrong with this content.</p>
           </div>
 
+          <div className="category-section">
+            <label htmlFor="report-category" className="section-label">
+              Category <span className="required">*</span>
+            </label>
+            {loadingCategories ? (
+              <div className="loading-categories">Loading categories...</div>
+            ) : (
+              <select
+                id="report-category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                className="category-select"
+              >
+                <option value="">Select a category...</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {category && categories.find(cat => cat.id === category) && (
+              <p className="category-description">
+                {categories.find(cat => cat.id === category)?.description}
+              </p>
+            )}
+          </div>
+
           <div className="reason-section">
             <label htmlFor="report-reason" className="section-label">
-              Reason for reporting <span className="required">*</span>
+              Additional details <span className="required">*</span>
             </label>
             <textarea
               id="report-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Please explain why you're reporting this image (inappropriate content, spam, violence, copyright, harassment, etc.)"
+              placeholder="Please provide additional details about why you're reporting this image..."
               rows="4"
               required
               maxLength={500}
             />
-            <p className="char-count">{reason.length}/500</p>
+            <div className="validation-info">
+              <p className="char-count">{reason.length}/500 characters</p>
+              <p className="word-count">{getWordCount(reason)}/50 words</p>
+            </div>
           </div>
 
           <div className="modal-actions">
@@ -66,7 +129,7 @@ const ReportImageModal = ({ isOpen, onClose, onReport, isLoading = false }) => {
             <button 
               type="submit" 
               className="report-btn"
-              disabled={!reason.trim() || isLoading}
+              disabled={!category || !reason.trim() || isLoading}
             >
               {isLoading ? (
                 <>

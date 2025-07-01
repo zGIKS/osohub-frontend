@@ -3,13 +3,13 @@
 
 .report-modal {
   background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 100%;
   max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
 }
 
 .report-form {
@@ -23,6 +23,8 @@
   gap: 1rem;
   text-align: center;
   margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
 }
 
 .report-icon {
@@ -53,6 +55,10 @@
   margin-bottom: 1.5rem;
 }
 
+.category-section {
+  margin-bottom: 1.5rem;
+}
+
 .section-label {
   display: block;
   font-weight: 500;
@@ -63,6 +69,57 @@
 
 .required {
   color: #dc3545;
+}
+
+.category-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: var(--text-primary);
+}
+
+.category-select:hover {
+  border-color: var(--text-secondary);
+}
+
+.category-select option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.category-description {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.4;
+  padding: 8px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.loading-categories {
+  text-align: center;
+  color: var(--text-primary);
+  font-weight: bold;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .reason-section textarea {
@@ -85,11 +142,32 @@
   border-color: var(--text-primary);
 }
 
-.char-count {
-  text-align: right;
+.reason-section textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.validation-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5rem 0 0 0;
+  gap: 1rem;
+}
+
+.char-count, .word-count {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  margin: 0.5rem 0 0 0;
+  margin: 0;
+  font-weight: 500;
+}
+
+.char-count {
+  text-align: right;
+  flex: 1;
+}
+
+.word-count {
+  text-align: left;
+  flex: 1;
 }
 
 .report-btn {
@@ -111,6 +189,27 @@
 }
 
 .report-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.cancel-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -137,7 +236,7 @@
     font-size: 0.9rem;
   }
   
-  .reason-section {
+  .category-section, .reason-section {
     margin-bottom: 1rem;
   }
 }
@@ -158,4 +257,26 @@
   .reason-section textarea {
     min-height: 80px;
   }
+  
+  .category-select, .reason-section textarea {
+    padding: 10px 12px;
+  }
+}
+
+/* Scrollbar styling for modal */
+.report-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.report-modal::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.report-modal::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.report-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
