@@ -35,21 +35,26 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         try {
           debugLog('Loading like info for image:', image.id);
           
-          // Only load like count, assume not liked initially
-          const likeData = await imageService.getLikeCount(image.id);
+          // Load both like count and status from the API
+          const [likeData, likedStatus] = await Promise.all([
+            imageService.getLikeCount(image.id),
+            imageService.checkIfLiked(image.id)
+          ]);
           
           setLikeCount(likeData.count || 0);
-          setIsLiked(false); // Start with false, will be updated when user clicks
+          setIsLiked(likedStatus);
           setLikeCountLoaded(true);
           
           debugLog('Like info loaded:', { 
             imageId: image.id, 
             count: likeData.count, 
-            isLiked: false 
+            isLiked: likedStatus 
           });
         } catch (error) {
           debugLog('Failed to load like info:', { imageId: image.id, error: error.message });
           // Keep the default values
+          setLikeCount(0);
+          setIsLiked(false);
           setLikeCountLoaded(true);
         }
       }
@@ -81,17 +86,23 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         debugLog('Like added successfully');
       }
       
-      // Reload like count from server to ensure consistency
+      // Reload both like count and status from server to ensure consistency
       try {
-        const likeData = await imageService.getLikeCount(image.id);
+        const [likeData, likedStatus] = await Promise.all([
+          imageService.getLikeCount(image.id),
+          imageService.checkIfLiked(image.id)
+        ]);
+        
         setLikeCount(likeData.count || 0);
-        debugLog('Reloaded like count after action:', { 
+        setIsLiked(likedStatus);
+        
+        debugLog('Reloaded like info after action:', { 
           imageId: image.id, 
           count: likeData.count, 
-          isLiked: isLiked 
+          isLiked: likedStatus 
         });
       } catch (reloadError) {
-        debugLog('Failed to reload like count, keeping optimistic update', { 
+        debugLog('Failed to reload like info, keeping optimistic update', { 
           imageId: image.id, 
           error: reloadError.message 
         });

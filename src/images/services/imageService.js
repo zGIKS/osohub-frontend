@@ -118,9 +118,15 @@ export const imageService = {
     try {
       const endpoint = config.endpoints.GET_LIKES_COUNT.replace(':image_id', imageId);
       const response = await apiClient.get(endpoint);
-      debugLog('Like count response:', { imageId, likes: response.data.likes });
-      // Backend returns { "likes": number }, normalize to { "count": number }
-      return { count: response.data.likes || 0 };
+      debugLog('Like count response:', { imageId, response: response.data });
+      
+      // API returns a number or object with count - handle different response formats
+      if (typeof response.data === 'number') {
+        return { count: response.data };
+      }
+      // Handle different possible response formats from the API spec
+      const count = response.data.count || response.data.likes || response.data.additionalProp1 || 0;
+      return { count };
     } catch (error) {
       debugLog('Failed to get like count:', { imageId, error: error.message });
       return { count: 0 }; // Default to 0 on error
@@ -133,11 +139,13 @@ export const imageService = {
     try {
       const endpoint = config.endpoints.CHECK_IF_LIKED.replace(':image_id', imageId);
       const response = await apiClient.get(endpoint);
-      debugLog('Like status response:', { imageId, liked: response.data.liked });
-      return response.data.liked || false;
+      debugLog('Like status response:', { imageId, response: response.data });
+      
+      // API returns {'liked': true/false} - handle the specific format
+      return response.data.liked === true;
     } catch (error) {
       // If endpoint doesn't exist or fails, assume not liked
-      debugLog('Could not check like status, assuming not liked', { imageId, error: error.message });
+      debugLog('Could not check like status, assuming not liked', { imageId, error: error.message, status: error.response?.status });
       return false;
     }
   },

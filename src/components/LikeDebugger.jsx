@@ -52,6 +52,21 @@ const LikeDebugger = () => {
     setLoading(false);
   };
 
+  const testCheckStatus = async () => {
+    if (!imageId) return;
+    setLoading(true);
+    try {
+      debugLog('Testing CHECK STATUS operation...');
+      const result = await imageService.checkIfLiked(imageId);
+      setResult({ type: 'status', success: true, data: { liked: result } });
+      debugLog('CHECK STATUS test completed:', result);
+    } catch (error) {
+      setResult({ type: 'status', success: false, error: error.message });
+      debugLog('CHECK STATUS test failed:', error);
+    }
+    setLoading(false);
+  };
+
   return (
     <div style={{ 
       position: 'fixed', 
@@ -83,8 +98,14 @@ const LikeDebugger = () => {
         <button onClick={testUnlike} disabled={loading} style={{ flex: 1, padding: '5px' }}>
           Test Unlike
         </button>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
         <button onClick={testGetCount} disabled={loading} style={{ flex: 1, padding: '5px' }}>
           Get Count
+        </button>
+        <button onClick={testCheckStatus} disabled={loading} style={{ flex: 1, padding: '5px' }}>
+          Check Status
         </button>
       </div>
 
