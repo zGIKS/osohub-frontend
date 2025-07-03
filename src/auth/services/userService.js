@@ -1,6 +1,6 @@
 import apiClient, { config } from '../../shared/api/client';
 import { debugLog, getCurrentUserId } from '../../config';
-import { generateDefaultAvatar } from '../../utils/avatarGenerator';
+import { generateDefaultAvatar } from './avatarGenerator';
 
 export const userService = {
   // Login - POST /auth/login
@@ -150,6 +150,34 @@ export const userService = {
       return response.data;
     } catch (error) {
       debugLog('Get user images error:', error);
+      throw error;
+    }
+  },
+
+  // Get shareable link for current user's profile - GET /users/me/share-link
+  async getShareLink() {
+    try {
+      debugLog('Getting share link for current user...');
+      const response = await apiClient.get(config.endpoints.GET_SHARE_LINK);
+      debugLog('Share link response:', response.data);
+      return response.data;
+    } catch (error) {
+      debugLog('Get share link error:', error);
+      throw error;
+    }
+  },
+
+  // Get public profile by username - GET /profile/:username (no auth required)
+  async getPublicProfile(username) {
+    try {
+      debugLog('Getting public profile...', { username });
+      const endpoint = config.endpoints.GET_PUBLIC_PROFILE.replace(':username', username);
+      // This endpoint doesn't require authentication
+      const response = await apiClient.get(endpoint);
+      debugLog('Public profile response:', response.data);
+      return response.data;
+    } catch (error) {
+      debugLog('Get public profile error:', error);
       throw error;
     }
   }

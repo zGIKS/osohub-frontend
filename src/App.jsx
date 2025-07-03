@@ -1,5 +1,5 @@
 import AppRouter from './router/AppRouter';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './auth/contexts/AuthContext';
 import ToastContainer from './shared/components/ToastContainer';
 import './App.css';
 

@@ -6,6 +6,37 @@ const ToastContainer = () => {
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = 'info', duration = 4000) => {
+    // Prevenir duplicados exactos
+    const isDuplicate = toasts.some(toast => 
+      toast.message === message && toast.type === type
+    );
+    
+    if (isDuplicate) {
+      return; // No agregar toast duplicado
+    }
+
+    // Prevenir errores similares de biografía
+    if (type === 'error' && message.includes('Biography')) {
+      const hasBioError = toasts.some(toast => 
+        toast.type === 'error' && toast.message.includes('Biography')
+      );
+      
+      if (hasBioError) {
+        return; // No agregar otro error de biografía si ya hay uno
+      }
+    }
+
+    // Prevenir errores similares de palabras
+    if (type === 'error' && message.includes('Words cannot exceed')) {
+      const hasWordError = toasts.some(toast => 
+        toast.type === 'error' && toast.message.includes('Words cannot exceed')
+      );
+      
+      if (hasWordError) {
+        return; // No agregar otro error de palabras si ya hay uno
+      }
+    }
+
     const id = Date.now() + Math.random();
     const newToast = {
       id,
@@ -14,10 +45,18 @@ const ToastContainer = () => {
       duration
     };
 
-    setToasts(prev => [...prev, newToast]);
+    setToasts(prev => {
+      // Limitar a máximo 5 toasts simultáneos
+      const updatedToasts = [...prev, newToast];
+      if (updatedToasts.length > 5) {
+        // Remover el toast más antiguo
+        return updatedToasts.slice(1);
+      }
+      return updatedToasts;
+    });
 
     return id;
-  }, []);
+  }, [toasts]);
 
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
@@ -38,7 +77,7 @@ const ToastContainer = () => {
           key={toast.id}
           className="toast-wrapper"
           style={{
-            top: `${20 + index * 80}px`,
+            '--toast-index': index,
             zIndex: 9999 - index
           }}
         >

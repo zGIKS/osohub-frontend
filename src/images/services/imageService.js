@@ -117,12 +117,31 @@ export const imageService = {
     debugLog('Getting like count...', { imageId });
     try {
       const endpoint = config.endpoints.GET_LIKES_COUNT.replace(':image_id', imageId);
+      debugLog('Like count endpoint:', endpoint);
       const response = await apiClient.get(endpoint);
-      debugLog('Like count response:', { imageId, likes: response.data.likes });
-      // Backend returns { "likes": number }, normalize to { "count": number }
-      return { count: response.data.likes || 0 };
+      debugLog('Like count response:', { imageId, response: response.data });
+      
+      // API returns a number or object with count - handle different response formats
+      if (typeof response.data === 'number') {
+        return { count: response.data };
+      }
+      // Handle different possible response formats from the API spec
+      const count = response.data.count || response.data.likes || response.data.additionalProp1 || response.data.additionalProp2 || response.data.additionalProp3 || 0;
+      return { count };
     } catch (error) {
-      debugLog('Failed to get like count:', { imageId, error: error.message });
+      debugLog('Failed to get like count:', { 
+        imageId, 
+        error: error.message, 
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        endpoint: config.endpoints.GET_LIKES_COUNT.replace(':image_id', imageId)
+      });
+      
+      // If it's a 404, the endpoint might not be implemented yet
+      if (error.response?.status === 404) {
+        debugLog('Like count endpoint not found (404) - endpoint may not be implemented in backend');
+      }
+      
       return { count: 0 }; // Default to 0 on error
     }
   },
@@ -132,22 +151,98 @@ export const imageService = {
     debugLog('Checking if image is liked...', { imageId });
     try {
       const endpoint = config.endpoints.CHECK_IF_LIKED.replace(':image_id', imageId);
+      debugLog('Like status endpoint:', endpoint);
       const response = await apiClient.get(endpoint);
-      debugLog('Like status response:', { imageId, liked: response.data.liked });
-      return response.data.liked || false;
+      debugLog('Like status response:', { imageId, response: response.data });
+      
+      // API returns {'liked': true/false} - handle different possible formats
+      const liked = response.data.liked === true || response.data.additionalProp1 === true || response.data.additionalProp2 === true || response.data.additionalProp3 === true;
+      return liked;
     } catch (error) {
       // If endpoint doesn't exist or fails, assume not liked
-      debugLog('Could not check like status, assuming not liked', { imageId, error: error.message });
+      debugLog('Could not check like status, assuming not liked', { 
+        imageId, 
+        error: error.message, 
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        endpoint: config.endpoints.CHECK_IF_LIKED.replace(':image_id', imageId)
+      });
+      
+      if (error.response?.status === 404) {
+        debugLog('Like status endpoint not found (404) - endpoint may not be implemented in backend');
+      }
+      
       return false;
     }
   },
 
-  // Report image - según tu spec: { "reason": "string" }
-  reportImage: async (imageId, reason = '') => {
-    debugLog('Reporting image...', { imageId, reason });
-    const endpoint = config.endpoints.REPORT_IMAGE.replace(':image_id', imageId);
-    const response = await apiClient.post(endpoint, { reason });
-    return response.data;
+  // Report image - según tu spec: { "category": "string", "reason": "string" }
+  reportImage: async (imageId, category, reason = '') => {
+    debugLog('Reporting image...', { imageId, category, reason });
+    try {
+      const endpoint = config.endpoints.REPORT_IMAGE.replace(':image_id', imageId);
+      debugLog('Report endpoint:', endpoint);
+      debugLog('Report payload:', { category, reason });
+      
+      const response = await apiClient.post(endpoint, { 
+        category: category,
+        reason: reason 
+      });
+      
+      debugLog('Report response:', response.data);
+      return response.data;
+    } catch (error) {
+      debugLog('Report error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
+      throw error;
+    }
+  },
+
+  // Get available report categories - GET /reports/categories
+  getReportCategories: async () => {
+    debugLog('Getting report categories...');
+    try {
+      const response = await apiClient.get(config.endpoints.GET_REPORT_CATEGORIES);
+      debugLog('Report categories response:', response.data);
+      
+      // Handle different response formats
+      const categories = response.data.categories || response.data.additionalProp1 || response.data.additionalProp2 || response.data.additionalProp3 || [];
+      
+      // If API returns raw categories array, normalize it
+      if (Array.isArray(categories)) {
+        return categories;
+      }
+      
+      // Fallback categories if API doesn't return proper format
+      return [
+        { id: "harassment", name: "Harassment", description: "Content that harasses, intimidates or bothers other users" },
+        { id: "hate", name: "Hate Speech", description: "Content that promotes hatred against groups or individuals" },
+        { id: "spam", name: "Spam", description: "Repetitive, unwanted or promotional content" },
+        { id: "inappropriate", name: "Inappropriate Content", description: "Explicit sexual content or material not suitable for all audiences" },
+        { id: "violence", name: "Violence", description: "Content that shows or promotes violence" },
+        { id: "misinformation", name: "Misinformation", description: "False or misleading information" },
+        { id: "copyright", name: "Copyright", description: "Unauthorized use of copyrighted content" },
+        { id: "other", name: "Other", description: "Other reasons not listed above" }
+      ];
+    } catch (error) {
+      debugLog('Failed to get report categories, using fallback:', error.message);
+      // Return fallback categories
+      return [
+        { id: "harassment", name: "Harassment", description: "Content that harasses, intimidates or bothers other users" },
+        { id: "hate", name: "Hate Speech", description: "Content that promotes hatred against groups or individuals" },
+        { id: "spam", name: "Spam", description: "Repetitive, unwanted or promotional content" },
+        { id: "inappropriate", name: "Inappropriate Content", description: "Explicit sexual content or material not suitable for all audiences" },
+        { id: "violence", name: "Violence", description: "Content that shows or promotes violence" },
+        { id: "misinformation", name: "Misinformation", description: "False or misleading information" },
+        { id: "copyright", name: "Copyright", description: "Unauthorized use of copyrighted content" },
+        { id: "other", name: "Other", description: "Other reasons not listed above" }
+      ];
+    }
   },
 
   // Get reports count

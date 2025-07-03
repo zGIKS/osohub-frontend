@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../hooks/useToast';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/useToast';
 import './Auth.css';
 
 const Login = () => {

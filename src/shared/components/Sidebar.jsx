@@ -8,7 +8,7 @@ import {
   X,
   LogOut
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../auth/contexts/AuthContext';
 import { debugLog } from '../../config';
 import './Sidebar.css';
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart, MoreHorizontal, Trash2, Flag } from 'lucide-react';
 import { imageService } from '../services/imageService';
 import { debugLog } from '../../config';
+import { useToast } from '../../auth/hooks/useToast';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import ReportImageModal from './ReportImageModal';
 import './ImageCard.css';
@@ -16,6 +17,7 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [likeCountLoaded, setLikeCountLoaded] = useState(false); // Always load from API
+  const { showToast } = useToast();
 
   // Debug: Log image data to see user profile picture
   useEffect(() => {
@@ -35,21 +37,26 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         try {
           debugLog('Loading like info for image:', image.id);
           
-          // Only load like count, assume not liked initially
-          const likeData = await imageService.getLikeCount(image.id);
+          // Load both like count and status from the API
+          const [likeData, likedStatus] = await Promise.all([
+            imageService.getLikeCount(image.id),
+            imageService.checkIfLiked(image.id)
+          ]);
           
           setLikeCount(likeData.count || 0);
-          setIsLiked(false); // Start with false, will be updated when user clicks
+          setIsLiked(likedStatus);
           setLikeCountLoaded(true);
           
           debugLog('Like info loaded:', { 
             imageId: image.id, 
             count: likeData.count, 
-            isLiked: false 
+            isLiked: likedStatus 
           });
         } catch (error) {
           debugLog('Failed to load like info:', { imageId: image.id, error: error.message });
           // Keep the default values
+          setLikeCount(0);
+          setIsLiked(false);
           setLikeCountLoaded(true);
         }
       }
@@ -81,17 +88,23 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
         debugLog('Like added successfully');
       }
       
-      // Reload like count from server to ensure consistency
+      // Reload both like count and status from server to ensure consistency
       try {
-        const likeData = await imageService.getLikeCount(image.id);
+        const [likeData, likedStatus] = await Promise.all([
+          imageService.getLikeCount(image.id),
+          imageService.checkIfLiked(image.id)
+        ]);
+        
         setLikeCount(likeData.count || 0);
-        debugLog('Reloaded like count after action:', { 
+        setIsLiked(likedStatus);
+        
+        debugLog('Reloaded like info after action:', { 
           imageId: image.id, 
           count: likeData.count, 
-          isLiked: isLiked 
+          isLiked: likedStatus 
         });
       } catch (reloadError) {
-        debugLog('Failed to reload like count, keeping optimistic update', { 
+        debugLog('Failed to reload like info, keeping optimistic update', { 
           imageId: image.id, 
           error: reloadError.message 
         });
@@ -124,15 +137,46 @@ const ImageCard = ({ image, onDelete, currentUserId }) => {
     }
   };
 
-  const handleReport = async (reason) => {
+  const handleReport = async (category, reason) => {
     setIsReporting(true);
     try {
-      await imageService.reportImage(image.id, reason);
+      // Validate inputs
+      if (!category || !category.trim()) {
+        showToast('Please select a category', 'error');
+        return;
+      }
+      if (!reason || !reason.trim()) {
+        showToast('Please provide a reason for reporting', 'error');
+        return;
+      }
+      if (reason.trim().length < 10) {
+        showToast('Please provide a more detailed reason (at least 10 characters)', 'error');
+        return;
+      }
+
+      debugLog('Attempting to report image...', { imageId: image.id, category, reason: reason.trim() });
+      await imageService.reportImage(image.id, category.trim(), reason.trim());
       setShowReportModal(false);
       setShowOptions(false);
-      // You could add a toast notification here
+      showToast('Image reported successfully', 'success');
+      debugLog('Image reported successfully');
     } catch (error) {
       console.error('Error reporting image:', error);
+      debugLog('Report error:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = 'Failed to report image. Please try again.';
+      if (error.response?.status === 400) {
+        errorMessage = 'Invalid report data. Please check your input.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'You must be logged in to report images.';
+      } else if (error.response?.status === 429) {
+        errorMessage = 'Too many reports. Please wait before trying again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setIsReporting(false);
     }

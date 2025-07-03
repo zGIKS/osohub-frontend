@@ -190,11 +190,29 @@
   border-color: var(--text-primary);
 }
 
-.char-count {
-  text-align: right;
-  font-size: 0.8rem;
+.description-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.char-count,
+.word-count {
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin: 0;
+}
+
+.char-count.warning,
+.word-count.warning {
+  color: #f59e0b;
+}
+
+.char-count.error,
+.word-count.error {
+  color: #ef4444;
+  font-weight: 500;
 }
 
 .modal-actions {
