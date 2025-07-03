@@ -5,9 +5,9 @@ import Profile from '../auth/pages/Profile';
 import Login from '../auth/pages/Login';
 import SignUp from '../auth/pages/SignUp';
 import Settings from '../auth/pages/Settings';
-import PublicProfile from '../pages/PublicProfile';
-import ProtectedRoute from '../components/ProtectedRoute';
-import { useAuth } from '../contexts/AuthContext';
+import PublicProfile from '../images/pages/PublicProfile';
+import ProtectedRoute from '../auth/components/ProtectedRoute';
+import { useAuth } from '../auth/contexts/AuthContext';
 
 const AppRouter = () => {
   const { isAuthenticated, loading } = useAuth();

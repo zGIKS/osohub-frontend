@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getAuthToken, getCurrentUserId, clearAuthData } from '../config';
-import { userService } from '../auth/services/userService';
+import { getAuthToken, getCurrentUserId, clearAuthData } from '../../config';
+import { userService } from '../services/userService';
 
 const AuthContext = createContext();
 

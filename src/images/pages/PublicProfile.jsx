@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Grid3x3, ExternalLink } from 'lucide-react';
-import { userService } from '../auth/services/userService';
-import { debugLog } from '../config';
+import { userService } from '../../auth/services/userService';
+import { debugLog } from '../../config';
 import './PublicProfile.css';
 
 const PublicProfile = () => {

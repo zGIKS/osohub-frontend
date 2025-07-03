@@ -1,6 +1,6 @@
 import apiClient, { config } from '../../shared/api/client';
 import { debugLog, getCurrentUserId } from '../../config';
-import { generateDefaultAvatar } from '../../utils/avatarGenerator';
+import { generateDefaultAvatar } from './avatarGenerator';
 
 export const userService = {
   // Login - POST /auth/login

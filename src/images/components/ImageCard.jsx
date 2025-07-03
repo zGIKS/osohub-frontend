@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart, MoreHorizontal, Trash2, Flag } from 'lucide-react';
 import { imageService } from '../services/imageService';
 import { debugLog } from '../../config';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../../auth/hooks/useToast';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import ReportImageModal from './ReportImageModal';
 import './ImageCard.css';

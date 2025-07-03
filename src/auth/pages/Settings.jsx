@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { User, Lock } from 'lucide-react';
 import { userService } from '../services/userService';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../hooks/useToast';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/useToast';
 import { debugLog } from '../../config';
 import './Settings.css';
 

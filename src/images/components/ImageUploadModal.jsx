@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../../auth/hooks/useToast';
 import './ImageUploadModal.css';
 
 const ImageUploadModal = ({ isOpen, onClose, onUpload }) => {

@@ -5,7 +5,7 @@ import ImageCard from '../../images/components/ImageCard';
 import { imageService } from '../../images/services/imageService';
 import { userService } from '../services/userService';
 import { getCurrentUserId, debugLog } from '../../config';
-import { useToast } from '../../hooks/useToast';
+import { useToast } from '../hooks/useToast';
 import './Profile.css';
 
 const Profile = () => {
