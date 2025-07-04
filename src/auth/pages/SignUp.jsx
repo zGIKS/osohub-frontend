@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/useToast';
 import './Auth.css';
 
 const SignUp = () => {
@@ -13,47 +15,53 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const { signup } = useAuth();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      toast.error('Passwords do not match');
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      toast.error('Password must be at least 6 characters long');
       setLoading(false);
       return;
     }
 
     try {
-      // Mock registration - in a real app, this would call your auth service
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const result = await signup({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        bio: '',
+        profile_picture_url: ''
+      });
       
-      // Mock successful registration
-      localStorage.setItem('authToken', 'mock-token');
-      localStorage.setItem('currentUserId', '1');
-      
-      navigate('/');
+      if (result.success) {
+        toast.success('Account created successfully! Welcome to OSOHUB.');
+        navigate('/');
+      } else {
+        toast.error(result.error || 'Error creating account. Please try again.');
+      }
     } catch (error) {
-      setError('Error creating account. Please try again.');
+      console.error('SignUp error:', error);
+      toast.error('Error creating account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -145,8 +153,6 @@ const SignUp = () => {
               </button>
             </div>
           </div>
-
-          {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="auth-button" disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}

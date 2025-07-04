@@ -1,0 +1,155 @@
+.toast {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+}
+
+.toast-success {
+  border-left-color: #10b981;
+}
+
+.toast-success .toast-content {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.toast-success .toast-icon {
+  color: #10b981;
+}
+
+.toast-error {
+  border-left-color: #ef4444;
+}
+
+.toast-error .toast-content {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.toast-error .toast-icon {
+  color: #ef4444;
+}
+
+.toast-info {
+  border-left-color: #3b82f6;
+}
+
+.toast-info .toast-content {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.toast-info .toast-icon {
+  color: #3b82f6;
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast.toast-exit {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .toast {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .toast-content {
+    padding: 12px;
+  }
+  
+  .toast-message {
+    font-size: 13px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .toast-content {
+    background: rgba(30, 30, 30, 0.95);
+    color: white;
+  }
+  
+  .toast-success .toast-content {
+    background: rgba(16, 185, 129, 0.15);
+  }
+  
+  .toast-error .toast-content {
+    background: rgba(239, 68, 68, 0.15);
+  }
+  
+  .toast-info .toast-content {
+    background: rgba(59, 130, 246, 0.15);
+  }
+  
+  .toast-message {
+    color: white;
+  }
+}

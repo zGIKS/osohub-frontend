@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/useToast';
 import './Auth.css';
 
 const Login = () => {
@@ -10,34 +12,34 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      // Mock login - in a real app, this would call your auth service
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const result = await login(formData.email, formData.password);
       
-      // Mock successful login
-      localStorage.setItem('authToken', 'mock-token');
-      localStorage.setItem('currentUserId', '1');
-      
-      navigate('/');
+      if (result.success) {
+        toast.success('Login successful! Welcome back.');
+        navigate('/');
+      } else {
+        toast.error(result.error || 'Login failed. Please check your credentials.');
+      }
     } catch (error) {
-      setError('Login error. Please check your credentials.');
+      console.error('Login error:', error);
+      toast.error('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -90,8 +92,6 @@ const Login = () => {
               </button>
             </div>
           </div>
-
-          {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="auth-button" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}

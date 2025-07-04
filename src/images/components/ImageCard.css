@@ -1,20 +1,26 @@
 .image-card {
   background-color: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border-color);
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 300px; /* Altura mínima en lugar de fija */
 }
 
 .image-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .image-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  height: 250px; /* Altura fija para la imagen */
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .image {
@@ -72,7 +78,20 @@
 }
 
 .like-btn.liked {
-  background: rgba(220, 38, 127, 0.8);
+  background: rgba(220, 38, 127, 0.9);
+  border: 2px solid #dc267f;
+  color: #ff1744;
+}
+
+.like-btn.liked svg {
+  fill: #ff1744;
+  color: #ff1744;
+}
+
+.like-btn.liked:hover {
+  background: rgba(220, 38, 127, 1);
+  transform: scale(1.15);
+  color: #ff1744;
 }
 
 .options-container {
@@ -135,21 +154,26 @@
 }
 
 .image-info {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 52px; /* Altura ligeramente mayor */
+  flex-shrink: 0; /* No se comprime */
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0; /* Allow text to truncate */
 }
 
 .user-avatar {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--text-primary);
   color: var(--bg-primary);
@@ -158,12 +182,38 @@
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.user-avatar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .username {
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .like-count {
@@ -172,17 +222,32 @@
   gap: 0.25rem;
   color: var(--text-muted);
   font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .image-description {
-  padding: 0 1rem 1rem;
+  padding: 0.75rem 1rem 1rem;
   font-size: 0.9rem;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  /* Permitir que el texto se expanda completamente */
+  white-space: pre-wrap;
+  flex-grow: 1; /* Permite que la descripción tome el espacio necesario */
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+  .image-card {
+    min-height: 280px; /* Altura mínima menor en móvil */
+  }
+  
+  .image-container {
+    height: 200px; /* Imagen más pequeña en móvil */
+  }
+
   .image-overlay {
     opacity: 1;
     background: linear-gradient(
@@ -197,5 +262,36 @@
   .options-btn {
     width: 36px;
     height: 36px;
+  }
+  
+  .image-info {
+    padding: 0.5rem 0.75rem;
+    min-height: 40px;
+  }
+  
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .image-description {
+    padding: 0.5rem 0.75rem 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-card {
+    min-height: 260px; /* Altura mínima aún menor en pantallas muy pequeñas */
+  }
+  
+  .image-container {
+    height: 180px;
+  }
+  
+  .image-description {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem 0.75rem;
   }
 }
