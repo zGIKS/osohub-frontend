@@ -97,19 +97,10 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       const response = await userService.createUser(userData);
-      
-      if (response.token && response.user && response.user.user_id) {
-        const token = response.token;
-        const userId = response.user.user_id;
-        
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('currentUserId', userId);
-        localStorage.setItem('userData', JSON.stringify(response.user));
-        
-        // Usar los datos del usuario que ya vienen en la respuesta
-        setUser(response.user);
-        setIsAuthenticated(true);
-        
+      // Log para depuración: ver la respuesta real
+      console.log('Signup response:', response);
+      // Considera éxito si la respuesta tiene user_id o id
+      if (response && (response.user_id || response.id)) {
         return { success: true };
       } else {
         throw new Error('Invalid response format');
