@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart } from 'lucide-react';
+import { Utensils } from 'lucide-react';
 import { imageService } from '../services/imageService';
 import { debugLog } from '../../config';
 import './ImageCard.css';
@@ -171,11 +171,11 @@ const ImageCard = ({ image, onDelete, currentUserId, onClick }) => {
             onClick={handleLikeClick}
             disabled={likeLoading || !currentUserId}
           >
-            <Heart 
+            <Utensils 
               size={16} 
-              className="hover-heart-icon" 
-              fill={isLiked ? '#dc267f' : 'none'}
-              color={isLiked ? '#dc267f' : 'white'}
+              className="hover-utensils-icon" 
+              fill={isLiked ? 'white' : 'none'}
+              color={isLiked ? 'white' : '#7c7c7c'}
             />
             <span>{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
           </button>

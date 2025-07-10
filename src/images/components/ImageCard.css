@@ -131,18 +131,18 @@
   cursor: default;
 }
 
-.hover-heart-icon {
-  color: white;
+.hover-utensils-icon {
+  color: #7c7c7c;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.hover-heart-icon:hover {
+.hover-utensils-icon:hover {
   transform: scale(1.2);
 }
 
-.hover-likes.liked .hover-heart-icon {
-  color: #dc267f;
+.hover-likes.liked .hover-utensils-icon {
+  color: white;
   transform: scale(1.1);
 }
 
