@@ -12,6 +12,7 @@ const FullPostView = ({
   images = [], 
   onClose, 
   onNavigate,
+  onDelete,
   currentUserId 
 }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -113,10 +114,16 @@ const FullPostView = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await imageService.deleteImage(image.id);
+      if (onDelete) {
+        // Use parent's delete handler which includes state updates
+        await onDelete(image.id);
+      } else {
+        // Fallback to direct service call
+        await imageService.deleteImage(image.id);
+        showToast('Image deleted successfully', 'success');
+      }
       setShowDeleteModal(false);
       setShowOptions(false);
-      showToast('Image deleted successfully', 'success');
       onClose(); // Close the full view after deletion
     } catch (error) {
       console.error('Error deleting image:', error);
@@ -194,6 +201,21 @@ const FullPostView = ({
 
   const canDelete = currentUserId && image.userId === currentUserId;
 
+  // Debug logging for delete permissions
+  useEffect(() => {
+    debugLog('FullPostView delete permissions:', {
+      currentUserId,
+      imageUserId: image.userId,
+      imageUserIdFromUser: image.user?.user_id,
+      canDelete,
+      image: {
+        id: image.id,
+        userId: image.userId,
+        user: image.user
+      }
+    });
+  }, [currentUserId, image.userId, canDelete, image.id]);
+
   // Handle image load to get natural dimensions
   const handleImageLoad = (e) => {
     const { naturalWidth, naturalHeight } = e.target;
@@ -256,7 +278,7 @@ const FullPostView = ({
               handleNavigate('prev');
             }}
           >
-            <ChevronLeft size={32} />
+            <ChevronLeft size={24} />
           </button>
         )}
         
@@ -268,14 +290,14 @@ const FullPostView = ({
               handleNavigate('next');
             }}
           >
-            <ChevronRight size={32} />
+            <ChevronRight size={24} />
           </button>
         )}
 
         <div className="full-post-container" onClick={(e) => e.stopPropagation()}>
           {/* Close Button */}
           <button className="full-post-close" onClick={onClose}>
-            <X size={24} />
+            <X size={18} />
           </button>
 
           {/* Main Content */}
@@ -365,8 +387,8 @@ const FullPostView = ({
                 >
                   <Utensils 
                     size={24} 
-                    fill={isLiked ? 'white' : 'none'}
-                    color={isLiked ? 'white' : '#7c7c7c'}
+                    fill={isLiked ? 'currentColor' : 'none'}
+                    color="currentColor"
                     className="utensils-icon"
                   />
                   <span className="like-count">
