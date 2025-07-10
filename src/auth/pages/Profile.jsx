@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Grid3x3, Share } from 'lucide-react';
 import ImageCard from '../../images/components/ImageCard';
+import FullPostView from '../../images/components/FullPostView';
 import { imageService } from '../../images/services/imageService';
 import { userService } from '../services/userService';
 import { getCurrentUserId, debugLog } from '../../config';
@@ -16,6 +17,8 @@ const Profile = () => {
   const [shareLink, setShareLink] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [isGettingShareLink, setIsGettingShareLink] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showFullPost, setShowFullPost] = useState(false);
   
   // Toast hook for notifications
   const { success, error: showError } = useToast();
@@ -152,6 +155,31 @@ const Profile = () => {
     }
   };
 
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setShowFullPost(true);
+  };
+
+  const handleFullPostClose = () => {
+    setShowFullPost(false);
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = userImages.findIndex(img => img.id === selectedImage.id);
+    let newIndex;
+    
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : userImages.length - 1;
+    } else {
+      newIndex = currentIndex < userImages.length - 1 ? currentIndex + 1 : 0;
+    }
+    
+    setSelectedImage(userImages[newIndex]);
+  };
+
   if (loading) {
     return (
       <div className="profile-loading">
@@ -239,6 +267,7 @@ const Profile = () => {
               image={image}
               onDelete={handleImageDelete}
               currentUserId={currentUserId}
+              onClick={handleImageClick}
             />
           ))}
         </div>
@@ -288,6 +317,17 @@ const Profile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Full Post View */}
+      {showFullPost && selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={userImages}
+          onClose={handleFullPostClose}
+          onNavigate={handleNavigate}
+          currentUserId={currentUserId}
+        />
       )}
     </div>
   );

@@ -197,7 +197,7 @@ const Feed = () => {
   return (
     <div className="feed">
       <div className="feed-header">
-        <h1>Feed</h1>
+        <h3>OSOHUB - for foodies</h3>
         <div className="feed-actions">
           <button 
             className="refresh-btn"

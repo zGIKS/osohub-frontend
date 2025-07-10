@@ -85,6 +85,9 @@
   font-size: 0.8rem;
   flex-shrink: 0;
   position: relative;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .hover-avatar img {
@@ -92,6 +95,9 @@
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .avatar-fallback {

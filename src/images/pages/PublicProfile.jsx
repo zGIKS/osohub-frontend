@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Grid3x3, ExternalLink } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
+import FullPostView from '../components/FullPostView';
 import { userService } from '../../auth/services/userService';
 import { debugLog } from '../../config';
 import './PublicProfile.css';
@@ -12,6 +13,8 @@ const PublicProfile = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showFullPost, setShowFullPost] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -67,6 +70,31 @@ const PublicProfile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setShowFullPost(true);
+  };
+
+  const handleFullPostClose = () => {
+    setShowFullPost(false);
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    let newIndex;
+    
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
+    } else {
+      newIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
+    }
+    
+    setSelectedImage(images[newIndex]);
   };
 
   if (loading) {
@@ -147,7 +175,7 @@ const PublicProfile = () => {
               image={image}
               currentUserId={null} // No user actions in public profile
               onDelete={null}
-              onClick={null} // Can be added later for full post view
+              onClick={handleImageClick}
             />
           ))}
         </div>
@@ -161,6 +189,17 @@ const PublicProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Full Post View */}
+      {showFullPost && selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={images}
+          onClose={handleFullPostClose}
+          onNavigate={handleNavigate}
+          currentUserId={null} // No user actions in public profile
+        />
+      )}
     </div>
   );
 };

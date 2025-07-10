@@ -100,7 +100,6 @@ const Sidebar = () => {
         {/* Desktop Logo */}
         <div className="sidebar-logo">
           <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
-          <span className="logo-text">OSOHUB</span>
         </div>
 
         {/* Navigation */}

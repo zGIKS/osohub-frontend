@@ -183,6 +183,9 @@
   font-size: 1.2rem;
   flex-shrink: 0;
   position: relative;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .full-post-avatar img {
@@ -190,6 +193,9 @@
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .avatar-fallback {

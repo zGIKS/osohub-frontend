@@ -134,6 +134,9 @@
   font-weight: 600;
   font-size: 0.75rem;
   position: relative;
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .nav-avatar img {
@@ -143,6 +146,10 @@
   position: absolute;
   top: 0;
   left: 0;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-radius: 50%;
 }
 
 .nav-avatar span {
