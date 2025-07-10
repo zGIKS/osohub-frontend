@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, ChevronLeft, ChevronRight, X, MoreHorizontal, Trash2, Flag } from 'lucide-react';
+import { Utensils, ChevronLeft, ChevronRight, X, MoreHorizontal, Trash2, Flag } from 'lucide-react';
 import { imageService } from '../services/imageService';
 import { debugLog } from '../../config';
 import { useToast } from '../../auth/hooks/useToast';
@@ -23,6 +23,8 @@ const FullPostView = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [likeAnimation, setLikeAnimation] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState(null);
   const { showToast } = useToast();
 
   // Find current image index
@@ -101,18 +103,10 @@ const FullPostView = ({
   const handleNavigate = (direction) => {
     if (!onNavigate) return;
     
-    let newIndex;
     if (direction === 'prev' && canNavigatePrev) {
-      newIndex = currentIndex - 1;
+      onNavigate('prev');
     } else if (direction === 'next' && canNavigateNext) {
-      newIndex = currentIndex + 1;
-    } else {
-      return;
-    }
-    
-    const newImage = images[newIndex];
-    if (newImage) {
-      onNavigate(newImage);
+      onNavigate('next');
     }
   };
 
@@ -200,42 +194,102 @@ const FullPostView = ({
 
   const canDelete = currentUserId && image.userId === currentUserId;
 
+  // Handle image load to get natural dimensions
+  const handleImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.target;
+    setImageDimensions({ width: naturalWidth, height: naturalHeight });
+    setImageLoaded(true);
+  };
+
+  // Calculate optimal image display size based on aspect ratio
+  const getImageContainerStyle = () => {
+    if (!imageLoaded || !imageDimensions) {
+      return { minWidth: '400px', minHeight: '400px' };
+    }
+
+    const { width, height } = imageDimensions;
+    const aspectRatio = width / height;
+    
+    // Maximum dimensions based on viewport
+    const maxWidth = Math.min(window.innerWidth * 0.7, 800);
+    const maxHeight = Math.min(window.innerHeight * 0.8, 800);
+    
+    let containerWidth, containerHeight;
+    
+    if (aspectRatio > 1) {
+      // Landscape - prioritize width
+      containerWidth = Math.min(maxWidth, width);
+      containerHeight = containerWidth / aspectRatio;
+      
+      if (containerHeight > maxHeight) {
+        containerHeight = maxHeight;
+        containerWidth = containerHeight * aspectRatio;
+      }
+    } else {
+      // Portrait or square - prioritize height
+      containerHeight = Math.min(maxHeight, height);
+      containerWidth = containerHeight * aspectRatio;
+      
+      if (containerWidth > maxWidth) {
+        containerWidth = maxWidth;
+        containerHeight = containerWidth / aspectRatio;
+      }
+    }
+
+    return {
+      width: `${Math.max(400, containerWidth)}px`,
+      height: `${Math.max(400, containerHeight)}px`,
+      minWidth: '400px',
+      minHeight: '400px'
+    };
+  };
+
   return (
     <>
       <div className="full-post-overlay" onClick={onClose}>
+        {/* Navigation Arrows - Outside container */}
+        {canNavigatePrev && (
+          <button 
+            className="nav-arrow nav-prev"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNavigate('prev');
+            }}
+          >
+            <ChevronLeft size={32} />
+          </button>
+        )}
+        
+        {canNavigateNext && (
+          <button 
+            className="nav-arrow nav-next"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNavigate('next');
+            }}
+          >
+            <ChevronRight size={32} />
+          </button>
+        )}
+
         <div className="full-post-container" onClick={(e) => e.stopPropagation()}>
           {/* Close Button */}
           <button className="full-post-close" onClick={onClose}>
             <X size={24} />
           </button>
 
-          {/* Navigation Arrows */}
-          {canNavigatePrev && (
-            <button 
-              className="nav-arrow nav-prev"
-              onClick={() => handleNavigate('prev')}
-            >
-              <ChevronLeft size={32} />
-            </button>
-          )}
-          
-          {canNavigateNext && (
-            <button 
-              className="nav-arrow nav-next"
-              onClick={() => handleNavigate('next')}
-            >
-              <ChevronRight size={32} />
-            </button>
-          )}
-
           {/* Main Content */}
           <div className="full-post-content">
             {/* Image */}
-            <div className="full-post-image-container">
+            <div 
+              className="full-post-image-container"
+              style={getImageContainerStyle()}
+            >
               <img 
                 src={image.url}
                 alt={image.title || image.description || 'Image'}
                 className="full-post-image"
+                onLoad={handleImageLoad}
               />
             </div>
 
@@ -309,11 +363,11 @@ const FullPostView = ({
                   onClick={handleLikeClick}
                   disabled={likeLoading}
                 >
-                  <Heart 
+                  <Utensils 
                     size={24} 
-                    fill={isLiked ? '#dc267f' : 'none'}
-                    color={isLiked ? '#dc267f' : 'currentColor'}
-                    className="heart-icon"
+                    fill={isLiked ? 'white' : 'none'}
+                    color={isLiked ? 'white' : '#7c7c7c'}
+                    className="utensils-icon"
                   />
                   <span className="like-count">
                     {likeCount} {likeCount === 1 ? 'like' : 'likes'}

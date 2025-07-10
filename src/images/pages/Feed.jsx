@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
 import ImageUploadModal from '../components/ImageUploadModal';
+import FullPostView from '../components/FullPostView';
 import { imageService } from '../services/imageService';
 import { getCurrentUserId, debugLog } from '../../config';
 import './Feed.css';
@@ -10,6 +11,7 @@ const Feed = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Get current user ID from config helper
   const currentUserId = getCurrentUserId() || '1';
@@ -158,6 +160,31 @@ const Feed = () => {
     setImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+  };
+
+  const handleCloseFullPost = () => {
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    
+    if (direction === 'next' && currentIndex < images.length - 1) {
+      setSelectedImage(images[currentIndex + 1]);
+    } else if (direction === 'prev' && currentIndex > 0) {
+      setSelectedImage(images[currentIndex - 1]);
+    }
+  };
+
+  const getCurrentImageIndex = () => {
+    if (!selectedImage) return -1;
+    return images.findIndex(img => img.id === selectedImage.id);
+  };
+
   if (loading) {
     return (
       <div className="feed-loading">
@@ -212,6 +239,7 @@ const Feed = () => {
               image={image}
               currentUserId={currentUserId}
               onDelete={handleImageDelete}
+              onClick={handleImageClick}
             />
           ))}
         </div>
@@ -222,6 +250,16 @@ const Feed = () => {
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           onUpload={handleImageUpload}
+        />
+      )}
+
+      {selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={images}
+          currentUserId={currentUserId}
+          onClose={handleCloseFullPost}
+          onNavigate={handleNavigate}
         />
       )}
     </div>

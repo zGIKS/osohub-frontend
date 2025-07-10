@@ -64,11 +64,25 @@ const ImageCard = ({ image, onDelete, currentUserId, onClick }) => {
   // Calculate aspect ratio for dynamic height
   const getImageStyle = () => {
     if (!imageLoaded || !imageDimensions.width || !imageDimensions.height) {
-      return { aspectRatio: '1 / 1' }; // Default square ratio while loading
+      return { 
+        aspectRatio: '1 / 1',
+        minHeight: '200px'
+      }; // Default square ratio while loading
     }
     
     const aspectRatio = imageDimensions.width / imageDimensions.height;
-    return { aspectRatio: `${aspectRatio} / 1` };
+    
+    // Clamp extreme aspect ratios for better layout
+    const minAspectRatio = 0.6; // Portrait limit (height can be 1.67x width)
+    const maxAspectRatio = 2.0; // Landscape limit (width can be 2x height)
+    
+    const clampedAspectRatio = Math.max(minAspectRatio, Math.min(maxAspectRatio, aspectRatio));
+    
+    return { 
+      aspectRatio: `${clampedAspectRatio} / 1`,
+      minHeight: '250px', // Minimum height to prevent tiny cards
+      maxHeight: '500px'  // Maximum height to prevent huge cards
+    };
   };
 
   const generateInitials = (username) => {

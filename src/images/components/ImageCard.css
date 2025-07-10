@@ -9,6 +9,9 @@
   break-inside: avoid;
   margin-bottom: 16px;
   width: 100%;
+  position: relative;
+  padding: 0;
+  border: none;
 }
 
 .image-card:hover {
@@ -22,14 +25,17 @@
   width: 100%;
   background-color: var(--bg-tertiary);
   overflow: hidden;
+  border-radius: 16px;
 }
 
 .image {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
   transition: opacity 0.3s ease;
   object-fit: cover;
+  object-position: center;
+  border-radius: 0;
 }
 
 /* Hover Overlay - Shows user info and likes */
