@@ -284,10 +284,69 @@
   color: var(--text-primary);
 }
 
+/* Profile Grid - Pinterest style masonry */
 .profile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  column-count: 3;
+  column-gap: 20px;
+  column-fill: balance;
+  margin-top: 2rem;
+}
+
+.profile-grid .image-card {
+  break-inside: avoid;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+/* Responsive column count for profile */
+@media (min-width: 1400px) {
+  .profile-grid {
+    column-count: 4;
+    column-gap: 24px;
+  }
+  
+  .profile-grid .image-card {
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .profile-grid {
+    column-count: 3;
+    column-gap: 18px;
+  }
+  
+  .profile-grid .image-card {
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .profile-grid {
+    column-count: 2;
+    column-gap: 16px;
+  }
+  
+  .profile-grid .image-card {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-grid {
+    column-count: 2;
+    column-gap: 12px;
+  }
+  
+  .profile-grid .image-card {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-grid {
+    column-count: 1;
+  }
 }
 
 .profile-loading {

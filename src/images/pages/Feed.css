@@ -122,22 +122,64 @@
   color: var(--text-primary);
 }
 
-/* Gallery Grid - Dynamic height cards */
+/* Gallery Grid - VSCO/PicsArt masonry style */
 .images-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  column-count: 3;
+  column-gap: 16px;
+  column-fill: balance;
   margin-bottom: 2rem;
   padding: 0;
-  grid-auto-rows: max-content; /* Las filas se ajustan al contenido */
-  align-items: start; /* Alinea las tarjetas arriba */
 }
 
-/* Gallery Grid - Large screens get smaller cards for more density */
+.images-grid .image-card {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Responsive column count */
 @media (min-width: 1400px) {
   .images-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.2rem;
+    column-count: 4;
+    column-gap: 14px;
+  }
+  
+  .images-grid .image-card {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .images-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .images-grid {
+    column-count: 2;
+    column-gap: 12px;
+  }
+  
+  .images-grid .image-card {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .images-grid {
+    column-count: 2;
+    column-gap: 8px;
+  }
+  
+  .images-grid .image-card {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  .images-grid {
+    column-count: 1;
   }
 }
 
