@@ -258,7 +258,6 @@
 .profile-nav {
   display: flex;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
 }
 
 .nav-btn {
@@ -433,47 +432,96 @@
   background-color: var(--accent-hover);
 }
 
-/* Mobile responsiveness */
+/* Mobile responsiveness - TikTok style centered layout */
 @media (max-width: 768px) {
   .profile {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
   }
 
   .profile-header {
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 2rem;
   }
 
   .profile-info {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 1.5rem;
+    gap: 1rem;
+    width: 100%;
   }
 
   .profile-avatar {
-    width: 100px;
-    height: 100px;
-    font-size: 2.5rem;
+    width: 120px;
+    height: 120px;
+    font-size: 3rem;
+    margin: 0 auto;
+  }
+
+  .profile-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
 
   .profile-details h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-bio {
+    text-align: center;
+    max-width: 320px;
+    margin-bottom: 1rem;
   }
 
   .profile-stats {
     justify-content: center;
-    gap: 1.5rem;
+    gap: 2rem;
+    margin-bottom: 1rem;
   }
 
-  .settings-btn {
-    align-self: stretch;
+  .profile-actions {
     justify-content: center;
+    width: 100%;
+    max-width: 300px;
+    gap: 0.75rem;
+  }
+
+  .share-btn,
+  .settings-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .profile-content {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .profile-nav {
+    justify-content: center;
+    margin-bottom: 1.5rem;
   }
 
   .profile-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+    column-count: 2;
+    column-gap: 16px;
+    max-width: 600px;
+    margin: 0 auto;
   }
 
   .share-modal {
@@ -495,130 +543,100 @@
 }
 
 @media (max-width: 480px) {
-  .profile-info {
+  .profile {
+    padding: 0.75rem;
+  }
+
+  .profile-header {
     gap: 1rem;
+    max-width: 350px;
+  }
+
+  .profile-info {
+    gap: 0.75rem;
   }
 
   .profile-avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
+
+  .profile-details h1 {
+    font-size: 1.5rem;
+  }
+
+  .profile-bio {
+    max-width: 280px;
+    font-size: 0.9rem;
   }
 
   .profile-stats {
-    gap: 1rem;
+    gap: 1.5rem;
+  }
+
+  .profile-actions {
+    max-width: 280px;
   }
 
   .profile-grid {
-    grid-template-columns: 1fr;
+    column-count: 2;
+    column-gap: 12px;
+    max-width: 400px;
   }
 }
 
-/* Extra small mobile */
+/* Extra small mobile - TikTok style compact */
 @media (max-width: 400px) {
   .profile {
     padding: 0.5rem;
   }
 
   .profile-header {
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    max-width: 300px;
   }
 
   .profile-avatar {
-    width: 70px;
-    height: 70px;
-    font-size: 1.8rem;
+    width: 90px;
+    height: 90px;
+    font-size: 2.25rem;
   }
 
   .profile-details h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     margin-bottom: 0.3rem;
   }
 
   .profile-bio {
     font-size: 0.85rem;
-    margin-bottom: 1rem;
-    max-width: 200px;
+    margin-bottom: 0.75rem;
+    max-width: 250px;
   }
 
   .profile-stats {
-    gap: 0.75rem;
+    gap: 1.25rem;
   }
 
   .stat-number {
-    font-size: 0.9rem;
+    font-size: 1.25rem;
   }
 
   .stat-label {
-    font-size: 0.75rem;
-  }
-
-  .settings-btn {
-    padding: 0.45rem 0.8rem;
-    font-size: 0.75rem;
-    gap: 0.3rem;
-  }
-
-  .settings-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-/* Ultra small mobile - 320px */
-@media (max-width: 320px) {
-  .profile {
-    padding: 0.4rem;
-  }
-
-  .profile-header {
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
-    padding-bottom: 0.8rem;
-  }
-
-  .profile-avatar {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-  }
-
-  .profile-details h1 {
-    font-size: 1.1rem;
-  }
-
-  .profile-bio {
     font-size: 0.8rem;
-    max-width: 180px;
-  }
-
-  .profile-stats {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .stat {
-    min-width: 60px;
-  }
-
-  .stat-number {
-    font-size: 0.85rem;
-  }
-
-  .stat-label {
-    font-size: 0.7rem;
   }
 
   .profile-actions {
-    gap: 0.375rem;
+    max-width: 250px;
+    gap: 0.5rem;
   }
 
   .share-btn,
   .settings-btn {
-    padding: 0.5rem 0.875rem;
+    padding: 0.6rem 0.8rem;
     font-size: 0.8rem;
+    gap: 0.3rem;
   }
 
   .share-btn svg,
@@ -627,11 +645,96 @@
     height: 16px;
   }
 
+  .profile-grid {
+    column-count: 2;
+    column-gap: 10px;
+    max-width: 320px;
+  }
+
+  .empty-profile p {
+    font-size: 0.9rem;
+  }
+
+  .empty-subtitle {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Ultra small mobile - 320px - TikTok style ultra compact */
+@media (max-width: 320px) {
+  .profile {
+    padding: 0.4rem;
+  }
+
+  .profile-header {
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.8rem;
+    max-width: 280px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .profile-details h1 {
+    font-size: 1.2rem;
+  }
+
+  .profile-bio {
+    font-size: 0.8rem;
+    max-width: 220px;
+  }
+
+  .profile-stats {
+    gap: 1rem;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+
+  .stat {
+    min-width: auto;
+    flex: 1;
+    max-width: 80px;
+  }
+
+  .stat-number {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .profile-actions {
+    gap: 0.375rem;
+    max-width: 220px;
+  }
+
+  .share-btn,
+  .settings-btn {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .share-btn svg,
+  .settings-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .profile-grid {
+    column-count: 1;
+    max-width: 280px;
+  }
+
   .empty-profile p {
     font-size: 0.8rem;
   }
 
   .empty-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.75rem !important;
   }
 }

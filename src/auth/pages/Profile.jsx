@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Settings, Grid3x3, Share } from 'lucide-react';
+import { Settings, Share } from 'lucide-react';
 import ImageCard from '../../images/components/ImageCard';
 import FullPostView from '../../images/components/FullPostView';
 import { imageService } from '../../images/services/imageService';
@@ -255,8 +255,7 @@ const Profile = () => {
       <div className="profile-content">
         <div className="profile-nav">
           <button className="nav-btn active">
-            <Grid3x3 size={16} />
-            Images
+            RECENT
           </button>
         </div>
 
