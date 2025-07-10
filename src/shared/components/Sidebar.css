@@ -266,6 +266,15 @@
   color: #ff6b6b;
 }
 
+.more-menu-item.theme-toggle {
+  color: var(--text-secondary);
+}
+
+.more-menu-item.theme-toggle:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
 /* Tablet responsiveness */
 @media (max-width: 1024px) {
   .sidebar {

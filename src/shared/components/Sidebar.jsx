@@ -6,9 +6,12 @@ import {
   Menu,
   X,
   LogOut,
-  MoreHorizontal
+  MoreHorizontal,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../../auth/contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { debugLog } from '../../config';
 import './Sidebar.css';
 
@@ -18,6 +21,7 @@ const Sidebar = () => {
   const moreMenuRef = useRef(null);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   // Debug: Log user data to see what we're getting
   useEffect(() => {
@@ -77,12 +81,17 @@ const Sidebar = () => {
     setShowMoreMenu(false);
   };
 
+  // Get the correct logo based on theme
+  const getLogoSrc = () => {
+    return isDarkMode ? "/OSITO_WHITE.png" : "/OSITO_BLACK.png";
+  };
+
   return (
     <>
       {/* Mobile Header */}
       <div className="mobile-header">
         <div className="mobile-logo">
-          <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
+          <img src={getLogoSrc()} alt="OSOHUB Logo" className="logo-image" />
           <span className="logo-text">OSOHUB</span>
         </div>
         <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
@@ -99,7 +108,7 @@ const Sidebar = () => {
       <div className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         {/* Desktop Logo */}
         <div className="sidebar-logo">
-          <img src="/OSITO_WHITE.png" alt="OSOHUB Logo" className="logo-image" />
+          <img src={getLogoSrc()} alt="OSOHUB Logo" className="logo-image" />
         </div>
 
         {/* Navigation */}
@@ -180,6 +189,13 @@ const Sidebar = () => {
                     <Settings size={16} />
                     <span>Settings</span>
                   </Link>
+                  <button 
+                    className="more-menu-item theme-toggle" 
+                    onClick={toggleTheme}
+                  >
+                    {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
                   <button 
                     className="more-menu-item logout-item" 
                     onClick={handleLogout}
