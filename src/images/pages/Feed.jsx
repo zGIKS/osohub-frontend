@@ -126,7 +126,7 @@ const Feed = () => {
         user_id: image.user_id,
         profile_picture_url: image.user_profile_picture_url || null
       },
-      likeCount: image.like_count || 0, // Use backend data if available
+      likeCount: Math.max(0, image.like_count || 0), // Ensure non-negative like count
       isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id

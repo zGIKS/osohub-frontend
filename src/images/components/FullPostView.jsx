@@ -41,11 +41,13 @@ const FullPostView = ({
           imageService.getLikeCount(image.id),
           imageService.checkIfLiked(image.id)
         ]);
-        setLikeCount(likeData.count || 0);
+        // Ensure like count is never negative
+        setLikeCount(Math.max(0, likeData.count || 0));
         setIsLiked(likedStatus);
       } catch (error) {
         debugLog('Failed to load like info for full post:', { imageId: image.id, error: error.message });
-        setLikeCount(image.likeCount || 0);
+        // Ensure fallback like count is never negative
+        setLikeCount(Math.max(0, image.likeCount || 0));
         setIsLiked(image.isLiked || false);
       }
     };
@@ -77,14 +79,20 @@ const FullPostView = ({
     const originalCount = likeCount;
     
     try {
-      // Optimistic update with animation
+      // Optimistic update with animation and proper validation
       if (isLiked) {
-        setIsLiked(false);
-        setLikeCount(prev => Math.max(0, prev - 1));
-        await imageService.removeLike(image.id);
+        // Prevent negative likes - only proceed if count is greater than 0
+        if (likeCount > 0) {
+          setIsLiked(false);
+          setLikeCount(prev => Math.max(0, prev - 1));
+          await imageService.removeLike(image.id);
+        } else {
+          // Already at 0, just update the UI state
+          setIsLiked(false);
+        }
       } else {
         setIsLiked(true);
-        setLikeCount(prev => prev + 1);
+        setLikeCount(prev => Math.max(0, prev + 1)); // Ensure non-negative
         // Trigger like animation
         setLikeAnimation(true);
         setTimeout(() => setLikeAnimation(false), 600);
@@ -93,7 +101,7 @@ const FullPostView = ({
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(originalLiked);
-      setLikeCount(originalCount);
+      setLikeCount(Math.max(0, originalCount)); // Ensure non-negative on revert
       console.error('Error toggling like:', error);
       showToast('Failed to update like status', 'error');
     } finally {
@@ -112,6 +120,9 @@ const FullPostView = ({
   };
 
   const handleDelete = async () => {
+    // Prevent double deletion
+    if (isDeleting) return;
+    
     setIsDeleting(true);
     try {
       if (onDelete) {

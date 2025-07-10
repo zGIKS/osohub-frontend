@@ -19,6 +19,7 @@ const Profile = () => {
   const [isGettingShareLink, setIsGettingShareLink] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showFullPost, setShowFullPost] = useState(false);
+  const [deletingImages, setDeletingImages] = useState(new Set()); // Track deleting images
   
   // Toast hook for notifications
   const { success, error: showError } = useToast();
@@ -92,7 +93,7 @@ const Profile = () => {
         user_id: image.user_id,
         profile_picture_url: image.user_profile_picture_url || userData?.profile_picture_url || null
       },
-      likeCount: image.like_count || 0, // Use backend data if available
+      likeCount: Math.max(0, image.like_count || 0), // Ensure non-negative like count
       isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id
@@ -100,14 +101,32 @@ const Profile = () => {
   };
 
   const handleImageDelete = async (imageId) => {
+    // Prevent double deletion
+    if (deletingImages.has(imageId)) {
+      debugLog('Image already being deleted, skipping...', { imageId });
+      return;
+    }
+
     try {
+      // Mark image as being deleted
+      setDeletingImages(prev => new Set(prev).add(imageId));
       debugLog('Deleting image...', { imageId });
+      
       await imageService.deleteImage(imageId);
       setUserImages(prev => prev.filter(img => img.id !== imageId));
       debugLog('Image deleted successfully');
+      success('Image deleted successfully');
     } catch (error) {
       console.error('Error deleting image:', error);
       debugLog('Delete error:', error);
+      showError('Failed to delete image');
+    } finally {
+      // Remove image from deleting set
+      setDeletingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(imageId);
+        return newSet;
+      });
     }
   };
 

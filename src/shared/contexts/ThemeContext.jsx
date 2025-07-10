@@ -11,7 +11,7 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Default to light mode
 
   // Load theme preference from localStorage on mount
   useEffect(() => {
@@ -19,8 +19,8 @@ export const ThemeProvider = ({ children }) => {
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
     } else {
-      // Default to dark mode
-      setIsDarkMode(true);
+      // Default to light mode
+      setIsDarkMode(false);
     }
   }, []);
 
@@ -41,7 +41,7 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty('--hover-bg', '#1f1f1f');
       root.style.setProperty('--sidebar-bg', '#000000');
       root.style.setProperty('--card-bg', '#111111');
-      root.style.setProperty('--overlay-bg', 'rgba(0, 0, 0, 0.8)');
+      root.style.setProperty('--overlay-bg', 'rgba(0, 0, 0, 0.9)');
     } else {
       // Light theme colors
       root.style.setProperty('--bg-primary', '#ffffff');
@@ -55,7 +55,7 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty('--hover-bg', '#f8f9fa');
       root.style.setProperty('--sidebar-bg', '#ffffff');
       root.style.setProperty('--card-bg', '#ffffff');
-      root.style.setProperty('--overlay-bg', 'rgba(255, 255, 255, 0.95)');
+      root.style.setProperty('--overlay-bg', 'rgba(0, 0, 0, 0.85)');
     }
 
     // Save theme preference

@@ -26,7 +26,7 @@ const ImageCard = ({ image, onDelete, currentUserId, onClick }) => {
             currentUserId ? imageService.checkIfLiked(image.id) : Promise.resolve(false)
           ]);
           
-          setLikeCount(likeData.count || 0);
+          setLikeCount(Math.max(0, likeData.count || 0));
           setIsLiked(likedStatus);
           setLikeCountLoaded(true);
           
@@ -37,7 +37,7 @@ const ImageCard = ({ image, onDelete, currentUserId, onClick }) => {
           });
         } catch (error) {
           debugLog('Failed to load like info:', { imageId: image.id, error: error.message });
-          setLikeCount(image.likeCount || 0);
+          setLikeCount(Math.max(0, image.likeCount || 0));
           setIsLiked(image.isLiked || false);
           setLikeCountLoaded(true);
         }
@@ -133,22 +133,28 @@ const ImageCard = ({ image, onDelete, currentUserId, onClick }) => {
     const originalCount = likeCount;
     
     try {
-      // Optimistic update
+      // Optimistic update with proper validation
       if (isLiked) {
-        setIsLiked(false);
-        setLikeCount(prev => Math.max(0, prev - 1));
-        await imageService.removeLike(image.id);
-        debugLog('Like removed successfully');
+        // Prevent negative likes - only proceed if count is greater than 0
+        if (likeCount > 0) {
+          setIsLiked(false);
+          setLikeCount(prev => Math.max(0, prev - 1));
+          await imageService.removeLike(image.id);
+          debugLog('Like removed successfully');
+        } else {
+          // Already at 0, just update the UI state
+          setIsLiked(false);
+        }
       } else {
         setIsLiked(true);
-        setLikeCount(prev => prev + 1);
+        setLikeCount(prev => Math.max(0, prev + 1)); // Ensure non-negative
         await imageService.likeImage(image.id);
         debugLog('Like added successfully');
       }
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(originalLiked);
-      setLikeCount(originalCount);
+      setLikeCount(Math.max(0, originalCount)); // Ensure non-negative on revert
       console.error('Error toggling like:', error);
       debugLog('Like toggle failed, reverted state', { 
         error: error.message,
