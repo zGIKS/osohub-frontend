@@ -3,7 +3,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Dark theme colors */
+  /* Default theme colors - will be overridden by ThemeContext */
   --bg-primary: #000000;
   --bg-secondary: #111111;
   --bg-tertiary: #1a1a1a;
@@ -13,6 +13,9 @@
   --border-color: #333333;
   --accent-color: #ffffff;
   --hover-bg: #1f1f1f;
+  --sidebar-bg: #000000;
+  --card-bg: #111111;
+  --overlay-bg: rgba(0, 0, 0, 0.8);
 
   color: var(--text-primary);
   background-color: var(--bg-primary);

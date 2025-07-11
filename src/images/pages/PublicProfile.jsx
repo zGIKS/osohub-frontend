@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Grid3x3, ExternalLink } from 'lucide-react';
+import ImageCard from '../components/ImageCard';
+import FullPostView from '../components/FullPostView';
 import { userService } from '../../auth/services/userService';
 import { debugLog } from '../../config';
 import './PublicProfile.css';
@@ -11,6 +13,8 @@ const PublicProfile = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showFullPost, setShowFullPost] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -31,7 +35,24 @@ const PublicProfile = () => {
       
       // The API might return different structures, adapt as needed
       setProfile(profileData.user || profileData);
-      setImages(profileData.images || []);
+      
+      // Transform images to match expected format
+      const transformedImages = (profileData.images || []).map(img => ({
+        id: img.image_id || img.id,
+        url: img.image_url || img.url || 'https://via.placeholder.com/400x400?text=No+Image',
+        title: img.title,
+        description: img.title,
+        userId: img.user_id,
+        user: {
+          username: profileData.user?.username || profileData.username || username,
+          profile_picture_url: profileData.user?.profile_picture_url || profileData.profile_picture_url
+        },
+        likeCount: img.like_count || 0,
+        isLiked: false, // Public profiles don't show like status
+        createdAt: img.uploaded_at || img.createdAt
+      }));
+      
+      setImages(transformedImages);
       
     } catch (error) {
       console.error('Error loading public profile:', error);
@@ -49,6 +70,31 @@ const PublicProfile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setShowFullPost(true);
+  };
+
+  const handleFullPostClose = () => {
+    setShowFullPost(false);
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    let newIndex;
+    
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
+    } else {
+      newIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
+    }
+    
+    setSelectedImage(images[newIndex]);
   };
 
   if (loading) {
@@ -123,22 +169,14 @@ const PublicProfile = () => {
         </div>
 
         <div className="public-profile-grid">
-          {images.map((image, index) => (
-            <div key={image.image_id || index} className="public-image-card">
-              <div className="public-image-container">
-                <img 
-                  src={image.image_url || 'https://via.placeholder.com/400x400?text=No+Image'} 
-                  alt={image.title || 'Image'} 
-                  className="public-image"
-                  loading="lazy"
-                />
-              </div>
-              {image.title && (
-                <div className="public-image-info">
-                  <p className="public-image-title">{image.title}</p>
-                </div>
-              )}
-            </div>
+          {images.map((image) => (
+            <ImageCard
+              key={image.id}
+              image={image}
+              currentUserId={null} // No user actions in public profile
+              onDelete={null}
+              onClick={handleImageClick}
+            />
           ))}
         </div>
 
@@ -151,6 +189,17 @@ const PublicProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Full Post View */}
+      {showFullPost && selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={images}
+          onClose={handleFullPostClose}
+          onNavigate={handleNavigate}
+          currentUserId={null} // No user actions in public profile
+        />
+      )}
     </div>
   );
 };

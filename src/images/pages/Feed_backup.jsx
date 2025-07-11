@@ -38,15 +38,10 @@ const Feed = () => {
       await loadFeed(); // Reload feed after upload
       setShowUploadModal(false);
       return result;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    }
-  };
-        await loadFeed();
-      } catch (uploadError) {
-        console.error('Error uploading to backend, using mock:', uploadError);
-        // Fallback: agregar imagen mock para demo
+    } catch (uploadError) {
+      console.error('Error uploading to backend, using mock:', uploadError);
+      // Fallback: agregar imagen mock para demo
+      try {
         const newImage = {
           id: Date.now().toString(),
           url: URL.createObjectURL(file),
@@ -58,10 +53,11 @@ const Feed = () => {
           createdAt: new Date().toISOString()
         };
         setImages(prev => [newImage, ...prev]);
+        setShowUploadModal(false);
+      } catch (error) {
+        console.error('Error creating mock image:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
     }
   };
 
@@ -123,5 +119,4 @@ const Feed = () => {
     </div>
   );
 };
-
 export default Feed;

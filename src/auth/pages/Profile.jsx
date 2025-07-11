@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Settings, Grid3x3, Share } from 'lucide-react';
+import { Settings, Share } from 'lucide-react';
 import ImageCard from '../../images/components/ImageCard';
+import FullPostView from '../../images/components/FullPostView';
 import { imageService } from '../../images/services/imageService';
 import { userService } from '../services/userService';
 import { getCurrentUserId, debugLog } from '../../config';
@@ -16,6 +17,9 @@ const Profile = () => {
   const [shareLink, setShareLink] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [isGettingShareLink, setIsGettingShareLink] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showFullPost, setShowFullPost] = useState(false);
+  const [deletingImages, setDeletingImages] = useState(new Set()); // Track deleting images
   
   // Toast hook for notifications
   const { success, error: showError } = useToast();
@@ -89,7 +93,7 @@ const Profile = () => {
         user_id: image.user_id,
         profile_picture_url: image.user_profile_picture_url || userData?.profile_picture_url || null
       },
-      likeCount: image.like_count || 0, // Use backend data if available
+      likeCount: Math.max(0, image.like_count || 0), // Ensure non-negative like count
       isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id
@@ -97,14 +101,32 @@ const Profile = () => {
   };
 
   const handleImageDelete = async (imageId) => {
+    // Prevent double deletion
+    if (deletingImages.has(imageId)) {
+      debugLog('Image already being deleted, skipping...', { imageId });
+      return;
+    }
+
     try {
+      // Mark image as being deleted
+      setDeletingImages(prev => new Set(prev).add(imageId));
       debugLog('Deleting image...', { imageId });
+      
       await imageService.deleteImage(imageId);
       setUserImages(prev => prev.filter(img => img.id !== imageId));
       debugLog('Image deleted successfully');
+      success('Image deleted successfully');
     } catch (error) {
       console.error('Error deleting image:', error);
       debugLog('Delete error:', error);
+      showError('Failed to delete image');
+    } finally {
+      // Remove image from deleting set
+      setDeletingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(imageId);
+        return newSet;
+      });
     }
   };
 
@@ -150,6 +172,31 @@ const Profile = () => {
       document.body.removeChild(textArea);
       success('Share link copied to clipboard!');
     }
+  };
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+    setShowFullPost(true);
+  };
+
+  const handleFullPostClose = () => {
+    setShowFullPost(false);
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = userImages.findIndex(img => img.id === selectedImage.id);
+    let newIndex;
+    
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : userImages.length - 1;
+    } else {
+      newIndex = currentIndex < userImages.length - 1 ? currentIndex + 1 : 0;
+    }
+    
+    setSelectedImage(userImages[newIndex]);
   };
 
   if (loading) {
@@ -227,8 +274,7 @@ const Profile = () => {
       <div className="profile-content">
         <div className="profile-nav">
           <button className="nav-btn active">
-            <Grid3x3 size={16} />
-            Images
+            RECENT
           </button>
         </div>
 
@@ -239,6 +285,7 @@ const Profile = () => {
               image={image}
               onDelete={handleImageDelete}
               currentUserId={currentUserId}
+              onClick={handleImageClick}
             />
           ))}
         </div>
@@ -288,6 +335,17 @@ const Profile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Full Post View */}
+      {showFullPost && selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={userImages}
+          onClose={handleFullPostClose}
+          onNavigate={handleNavigate}
+          currentUserId={currentUserId}
+        />
       )}
     </div>
   );

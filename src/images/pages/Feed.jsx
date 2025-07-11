@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import ImageCard from '../components/ImageCard';
 import ImageUploadModal from '../components/ImageUploadModal';
+import FullPostView from '../components/FullPostView';
 import { imageService } from '../services/imageService';
 import { getCurrentUserId, debugLog } from '../../config';
 import './Feed.css';
@@ -10,6 +11,7 @@ const Feed = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Get current user ID from config helper
   const currentUserId = getCurrentUserId() || '1';
@@ -124,7 +126,7 @@ const Feed = () => {
         user_id: image.user_id,
         profile_picture_url: image.user_profile_picture_url || null
       },
-      likeCount: image.like_count || 0, // Use backend data if available
+      likeCount: Math.max(0, image.like_count || 0), // Ensure non-negative like count
       isLiked: image.is_liked || false, // Use backend data if available
       createdAt: image.uploaded_at,
       image_id: image.image_id
@@ -158,6 +160,31 @@ const Feed = () => {
     setImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+  };
+
+  const handleCloseFullPost = () => {
+    setSelectedImage(null);
+  };
+
+  const handleNavigate = (direction) => {
+    if (!selectedImage) return;
+    
+    const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+    
+    if (direction === 'next' && currentIndex < images.length - 1) {
+      setSelectedImage(images[currentIndex + 1]);
+    } else if (direction === 'prev' && currentIndex > 0) {
+      setSelectedImage(images[currentIndex - 1]);
+    }
+  };
+
+  const getCurrentImageIndex = () => {
+    if (!selectedImage) return -1;
+    return images.findIndex(img => img.id === selectedImage.id);
+  };
+
   if (loading) {
     return (
       <div className="feed-loading">
@@ -170,7 +197,7 @@ const Feed = () => {
   return (
     <div className="feed">
       <div className="feed-header">
-        <h1>Feed</h1>
+        <h3>OSOHUB - for foodies</h3>
         <div className="feed-actions">
           <button 
             className="refresh-btn"
@@ -212,6 +239,7 @@ const Feed = () => {
               image={image}
               currentUserId={currentUserId}
               onDelete={handleImageDelete}
+              onClick={handleImageClick}
             />
           ))}
         </div>
@@ -222,6 +250,16 @@ const Feed = () => {
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           onUpload={handleImageUpload}
+        />
+      )}
+
+      {selectedImage && (
+        <FullPostView
+          image={selectedImage}
+          images={images}
+          currentUserId={currentUserId}
+          onClose={handleCloseFullPost}
+          onNavigate={handleNavigate}
         />
       )}
     </div>

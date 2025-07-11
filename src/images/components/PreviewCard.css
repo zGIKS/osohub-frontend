@@ -1,0 +1,262 @@
+/* PreviewCard - VSCO/PicsArt Style - Dynamic Image Sizing */
+.preview-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  break-inside: avoid;
+  margin-bottom: 16px;
+  width: 100%;
+  position: relative;
+}
+
+.preview-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Container - Dynamic height, natural aspect ratio */
+.preview-image-container {
+  position: relative;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  overflow: hidden;
+  /* No fixed height - let images determine their own height */
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: opacity 0.3s ease;
+  object-fit: cover;
+  /* Maintain natural aspect ratio - key for VSCO/PicsArt style */
+  min-height: 200px;
+  max-height: 500px; /* Prevent extremely tall images */
+}
+
+/* Hover Overlay - VSCO Style */
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.preview-card:hover .preview-overlay {
+  opacity: 1;
+}
+
+.preview-overlay-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.preview-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.preview-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-username {
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-likes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+/* Loading State - Subtle pulse like VSCO */
+.image-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background-color: var(--bg-tertiary);
+}
+
+.loading-pulse {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 0%,
+    var(--bg-primary) 50%,
+    var(--bg-tertiary) 100%
+  );
+  background-size: 200% 100%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Error State */
+.image-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-radius: 12px;
+}
+
+/* Profile Variant - Larger cards, no hover overlay */
+.preview-card.profile {
+  border-radius: 12px;
+  /* Larger cards for profile view */
+}
+
+.preview-card.profile:hover {
+  transform: translateY(-2px);
+}
+
+.preview-card.profile .preview-image {
+  max-height: 600px; /* Allow taller images in profile view */
+}
+
+/* Mobile Responsive - Instagram/VSCO style */
+@media (max-width: 768px) {
+  .preview-card {
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+  
+  .preview-overlay {
+    padding: 12px;
+  }
+  
+  .preview-username {
+    font-size: 0.85rem;
+  }
+  
+  .preview-likes {
+    font-size: 0.8rem;
+  }
+  
+  .preview-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .preview-card {
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .preview-card:hover {
+    transform: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .preview-overlay {
+    padding: 10px;
+  }
+  
+  .preview-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  
+  .preview-user-info {
+    gap: 8px;
+  }
+  
+  /* Show overlay always on mobile for better UX */
+  .preview-overlay {
+    opacity: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
+  }
+}
